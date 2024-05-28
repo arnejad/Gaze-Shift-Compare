@@ -6,14 +6,11 @@ from modules.dataloader import dataloader
 from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
 from modules.methods.gazeNet.myRun import pred as gazeNet
-from modules.methods import remodnav
+from modules.methods.remodnav.remodnav.myRun import pred as remodnav 
 ### Main body of execution
-
-remodnav.main()
 
 # loading the dataset
 data = dataloader()
-
 
 # TODO threshold to be optimized
 # IVT algorithm execution
@@ -21,10 +18,6 @@ ivt_res = ivt(data[0], v_threshold=0.6)
 
 # IDT algorithm execution
 idt_res = idt(data[0], threshold=0.6)
-
-
-# RemodNAV method
-
 
 
 # gazeNet execution
@@ -41,4 +34,13 @@ df = pd.DataFrame({
 X_test_all = [df]
 gazeNet_res = gazeNet(df)
 
-print(gazeNet_res)
+# print(gazeNet_res)
+
+
+# RemodNAV method
+df = df.drop(['evt', 'status'], axis=1)
+remo_res = remodnav(df)
+
+print(remo_res)
+
+
