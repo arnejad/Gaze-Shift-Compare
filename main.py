@@ -6,7 +6,7 @@ from modules.dataloader import dataloader
 from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
 from modules.methods.gazeNet.myRun import pred as gazeNet
-from modules.methods.remodnav.remodnav.myRun import pred as remodnav 
+from modules.methods.remodnav.myRun import pred as remodnav 
 ### Main body of execution
 
 # loading the dataset
