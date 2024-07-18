@@ -1,6 +1,9 @@
-# This function has been extracted from
-# https://github.com/mebirtukan/Evaluation-of-eye-movement-event-detection-algorithms/blob/main/I_VT_Classifier.ipynb
 
+############################################################################################
+# The code for this algorithm is extracted from 
+# https://github.com/mebirtukan/Evaluation-of-eye-movement-event-detection-algorithms/blob/main/I_VT_Classifier.ipynb
+# and redistributed under MIT license.
+############################################################################################
 
 import numpy as np
 

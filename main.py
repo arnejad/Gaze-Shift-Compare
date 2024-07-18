@@ -7,6 +7,9 @@ from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
 from modules.methods.gazeNet.myRun import pred as gazeNet
 from modules.methods.remodnav.myRun import pred as remodnav 
+from modules.methods.I2MC.I2MC_api import run as i2mc
+
+
 ### Main body of execution
 
 # loading the dataset
@@ -18,6 +21,9 @@ ivt_res = ivt(data[0], v_threshold=0.6)
 
 # IDT algorithm execution
 idt_res = idt(data[0], threshold=0.6)
+
+# IM2C algorithm execution
+idt_res = i2mc(data[0])
 
 
 # gazeNet execution
@@ -41,6 +47,9 @@ gazeNet_res = gazeNet(df)
 df = df.drop(['evt', 'status'], axis=1)
 remo_res = remodnav(df)
 
-print(remo_res)
+# print(remo_res)
+
+
+
 
 
