@@ -9,7 +9,7 @@ Created on Fri Apr 21 12:40:20 2017
 #%% imports
 import os, sys, glob
 from distutils.dir_util import mkpath
-from tqdm import tqdm
+# from tqdm import tqdm
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 ###
-import copy, argparse, fnmatch
+# import copy, argparse, fnmatch
 
 import torch
 from modules.methods.gazeNet.utils_lib.etdata import ETData
@@ -54,7 +54,7 @@ if dev:
     sys.argv = [sys.argv[0], ROOT, DATASET]
 # args = get_arguments()
 
-MODEL_DIR="/home/ash/projects/temp/gazeNet-master/logdir/model_final"
+MODEL_DIR="/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/model_final"
 MODEL_NAME = "gazeNET_0004_00003750"
 
 logdir =  os.path.join('logdir', MODEL_DIR)

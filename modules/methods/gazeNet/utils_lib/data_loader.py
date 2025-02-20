@@ -73,7 +73,7 @@ class EMDataset(Dataset, EventParser):
         data = []
         #seqid = -1
         for d in gaze_data: #iterates over files
-            dd = np.split(d, np.where(np.diff(d['status'].astype(np.int0)) != 0)[0]+1)
+            dd = np.split(d, np.where(np.diff(d['status'].astype(int)) != 0)[0]+1)
             dd = [_d for _d in dd if (_d['status'].all() and not(len(_d) < seq_len))]
 
             for seq in dd: #iterates over chunks of valid data

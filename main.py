@@ -23,7 +23,7 @@ ivt_res = ivt(data[0], v_threshold=0.6)
 idt_res = idt(data[0], threshold=0.6)
 
 # IM2C algorithm execution
-idt_res = i2mc(data[0])
+i2mc_res = i2mc(data[0])
 
 
 # gazeNet execution
