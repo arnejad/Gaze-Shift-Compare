@@ -4,7 +4,7 @@ from scipy.ndimage import median_filter
 import matplotlib.pyplot as plt
 
 
-from config import ET_FREQ, CAM_FREQ 
+from modules.methods.ACEDNV.config import ET_FREQ, CAM_FREQ 
 
 # Functions in this file are extracted from work of Elmadjian et al. on https://github.com/elmadjian/OEMC
 
@@ -193,7 +193,8 @@ def preprocessor(gaze, patchSim, headRot, bodyLoc, gaze_t, frame_t, labels, lblM
 
 
         if len(lblMatch)-1 in rmidcs[0] :
-            rmidcs = np.delete(rmidcs[0], np.where(rmidcs==(len(lblMatch)-1))[1])
+            # rmidcs = np.delete(rmidcs[0], np.where(rmidcs==(len(lblMatch)-1))[1])
+            rmidcs = rmidcs[0][0:-1]
             patchSim = np.delete(patchSim, rmidcs)
             headRot =  np.delete(headRot, rmidcs)
             bodyLoc =  np.delete(bodyLoc, rmidcs, axis=0)

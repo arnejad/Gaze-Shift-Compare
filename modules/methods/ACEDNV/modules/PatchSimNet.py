@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 import cv2 as cv
 from modules.patchExtractor import patchExtractor
-from config import PATCH_SIZE, PATCH_PRIOR_STEPS, LAMBDA
+from modules.methods.ACEDNV.config import PATCH_SIZE, PATCH_PRIOR_STEPS, LAMBDA
 
 CUDA_ID = '0'
 model = '2ch2stream'

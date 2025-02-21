@@ -76,7 +76,6 @@ def _load_PI():
 
 
 
-
 def _load_GiW():
     print("TODO")
     # to work on
@@ -86,4 +85,5 @@ def dataloader():
         return _load_PI()
     elif DATASET == "GiW":
         return _load_GiW()
+    
     else: raise Exception("The selected dataset is not correct")

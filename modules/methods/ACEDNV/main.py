@@ -4,6 +4,7 @@
 import numpy as np
 
 from modules.eventDetector import eventDetector_new as train_RF
+from modules.eventDetector import pred_detector as pred_RF
 from modules.preprocess import data_balancer
 from modules.reader import readDataset
 
@@ -13,7 +14,7 @@ ds_x, ds_y = readDataset()
 
 # Preprocess
 
-ds_x, ds_y = data_balancer(ds_x, ds_y)
+# ds_x, ds_y = data_balancer(ds_x, ds_y)
 
 
 # f1s_sample = []
@@ -35,7 +36,9 @@ ds_x = np.array(ds_x, dtype=object);
 
 if ds_y: ds_y = np.array(ds_y, dtype=object)
 
-# pred_RF(ds_x, ds_y)
+
+
+pred_RF(ds_x, ds_y, "model-zoo/random_forest.pkl")
 
 # data_stats(ds_y)
 

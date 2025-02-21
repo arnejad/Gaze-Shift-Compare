@@ -8,7 +8,7 @@ from sklearn import utils
 
 
 
-from config import ET_FREQ
+from modules.methods.ACEDNV.config import ET_FREQ
 
 # Functions in this file are extracted from work of Elmadjian et al. on https://github.com/elmadjian/OEMC
 

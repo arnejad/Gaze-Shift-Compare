@@ -4,7 +4,7 @@ import numpy as np
 import scipy.io
 from modules.timeMatcher import timeMatcher
 from modules.PatchSimNet import pred_all as patchNet_predAll
-from config import INP_DIR, OUT_DIR, VIDEO_SIZE, CLOUD_FORMAT, DATASET, ACTIVITY_NUM, ACIVITY_NAMES, LABELER
+from modules.methods.ACEDNV.config import INP_DIR, OUT_DIR, VIDEO_SIZE, CLOUD_FORMAT, DATASET, ACTIVITY_NUM, ACIVITY_NAMES, LABELER
 from modules.preprocess import preprocessor
 
 def zScore_norm(featSet):
@@ -28,8 +28,10 @@ def readDataset():
         ds_y = []
 
         for r in recs:
-            r = "p34"
+            # r = "p34"
             # r = '3'
+
+            print("reading data recordng from " + r)
             directory = join(INP_DIR, r)
 
             # list the files inside the input directory
@@ -95,10 +97,10 @@ def readDataset():
             # np.savetxt(OUT_DIR + 'gazeMatch.csv', gazeMatch, delimiter=',')
 
 
-            feats,_ = preprocessor(gazes, patchDists, headRot, bodyMotion, T, TMatch, labels, lblMatch)
+            feats,lbls = preprocessor(gazes, patchDists, headRot, bodyMotion, T, TMatch, labels, lblMatch)
             
             ds_x.append(feats)
-            ds_y.append(labels)
+            ds_y.append(lbls)
             # break
 
 

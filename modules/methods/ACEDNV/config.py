@@ -2,7 +2,7 @@
 # DATASET = "GiW-selected"
 DATASET = "VisioRUG"
 # INP_DIR = '/home/ashdev/samples/004'      # the input directory containing the video and gaze signal
-# INP_DIR = '/media/ashdev/Expansion/data/GiW/'
+# INP_DIR = '/media/ash/Expansion/data/GiW/'
 # INP_DIR = '/media/ashdev/Expansion/data/Walking_indoors/'
 INP_DIR = '/media/ash/Expansion/data/Saccade-Detection-Methods'
 LABELER = 5               #labeler number or 'MV' for majority voting or 'AG' for agreements

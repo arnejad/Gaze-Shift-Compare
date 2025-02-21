@@ -1,5 +1,5 @@
 # This function extracts the patch arround the gaze location.
-from config import PATCH_SIZE
+from modules.methods.ACEDNV.config import PATCH_SIZE
 
 def patchExtractor (frame, gazeCord):
     x = gazeCord[0]

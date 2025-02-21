@@ -1,7 +1,4 @@
 import numpy as np
-from modules.PatchSimNet import perdict
-from modules.wildMove import VOAnalyzer
-import cv2 as cv
 import modules.visualizer as visual
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
@@ -9,16 +6,24 @@ from modules.decisionMaker import print_scores as print_scores
 from sklearn.model_selection import train_test_split
 from modules.preprocess import data_stats, divider
 from modules.scorer import score
-from imblearn.under_sampling import RandomUnderSampler
-from sklearn import metrics
 import matplotlib.pyplot as plt
 import torch
 import pickle
-from random import randrange
+import joblib
+
+from modules.methods.ACEDNV.config import PATCH_SIM_THRESH, GAZE_DIST_THRESH, ENV_CHANGE_THRESH, PATCH_SIZE, LAMBDA, PATCH_PRIOR_STEPS, OUT_DIR
 
 
+def validate(model_dir, feats, lbls):
+    clf = RandomForestClassifier(random_state=0, criterion='gini', n_estimators=300, max_features= 'log2', min_samples_leaf=1, max_depth=50, min_samples_split=2, bootstrap=False)
+    with open(model_dir, 'rb') as f:
+        clf = pickle.load(f)
 
-from config import PATCH_SIM_THRESH, GAZE_DIST_THRESH, ENV_CHANGE_THRESH, PATCH_SIZE, LAMBDA, PATCH_PRIOR_STEPS, OUT_DIR
+    preds = clf.predict(feats)
+
+    return preds
+
+
 
 def eventDetector_new(feats, lbls):
 
@@ -175,7 +180,12 @@ def pred_detector(feats, lbls, modelDir):
     lbls = np.concatenate(lbls)
 
 
-    clf = pickle.load(open(modelDir, 'rb'))
+    # clf = pickle.load(open(modelDir, 'rb'))
+    # with open('model-zoo/rf_model', 'rb') as f:
+    #     clf = pickle.load(f, encoding='latin1')
+
+    clf = joblib.load(modelDir)
+
     preds = clf.predict(feats)
 
     
@@ -186,97 +196,10 @@ def pred_detector(feats, lbls, modelDir):
 
     # if lbls: 
     # print_scores(preds, lbls, 0, 'RF')
-    score(preds, lbls)
+    # score(preds, lbls)
 
     return preds
 
-
-def  eventDetector(patchSim, gazeDists, orientChange, lbls):
-    
-    # patchDist = patchContent.compare_old(patch1, patch2) #compute the patch content similarity
-    
-
-    # atten_flow = OFAnalyzer(frameNum, gazeCoord1, gazeCoord2)
-    # envMag = VOAnalyzer(frameNum)
-
-    # print(magMean)
-    
-    fig, axs = visual.knowledgePanel_init()    #initiallization of knowledge panel
-
-
-    PATCH_SIM_THRESH = 75
-    ENV_CHANGE_THRESH = 5.1
-    GAZE_DIST_THRESH = 4
-    GAZE_SMOOTHSLIDE_THRESH = 100
-    decisions = []
-    for i in range(len(gazeDists)):
-
-        
-        patchSimAvg = patchSim[i]
-        gazeDist = gazeDists[i]
-        envMag = orientChange[i]
-        
-        decision = 0
-        # final decision
-        visual.knowledgePanel_update(axs, None, np.column_stack((patchSim[:i+1], gazeDists[:i+1], orientChange[:i+1])))
-        plt.pause(0.0000001)
-        
-        if patchSimAvg < PATCH_SIM_THRESH:
-            if gazeDist > GAZE_DIST_THRESH:
-                decision = 3 #saccade
-            elif gazeDist < GAZE_DIST_THRESH:
-                if envMag < ENV_CHANGE_THRESH:
-                    decision = 1 #fixation
-        
-        else:# patchDist < GAZE_SIM_THRESH:
-            if gazeDist > GAZE_SMOOTHSLIDE_THRESH:
-                if envMag > ENV_CHANGE_THRESH:
-                    decision = 5 #"fixWithHeadMove" or tVOR and optokinetic
-                else:
-                    decision = 2 #"SmoothPursuit"
-            else:
-                # if envMag > ENV_CHANGE_THRESH:
-                #     decision = 4 #"HeadPursuit"
-                # else:
-                    decision = 1 #"fixation"
-
-        if (decision == lbls[i]):
-             print("correct {} = {}".format(decision, lbls[i]))
-        else:
-             print("Wrong: {} instead of {}".format(decision, lbls[i]))
-        decisions.append(decision)
-             
-
-
-        ############ OLD VERSION
-
-        # if patchSimAvg < PATCH_SIM_THRESH:
-        #     if gazeDist > GAZE_DIST_THRESH:
-        #         decision = "PotSAC"
-        #     elif gazeDist < GAZE_DIST_THRESH:
-        #         if envMag < ENV_CHANGE_THRESH:
-        #             decision = "fixation"
-        
-        # else:# patchDist < GAZE_SIM_THRESH:
-        #     if gazeDist > GAZE_DIST_THRESH:
-        #         if envMag > ENV_CHANGE_THRESH:
-        #             decision = "fixWithHeadMove"
-        #         else:
-        #             decision = "SmoothPursuit"
-        #     else:
-        #         if envMag > ENV_CHANGE_THRESH:
-        #             decision = "HeadPursuit"
-        #         else:
-        #             decision = "fixation"
-
-        # if decision == "":
-        #     decision = "None"
-
-
-    # return decision, [[patchDist.item(), patchSimAvg, gazeDist, envMag]]
-    # fig.show()
-
-    return decisions
 
     
 def trainAndTest(x_train, y_train, x_test, y_test):

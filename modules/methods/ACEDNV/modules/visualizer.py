@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from os import path, mkdir
-from config import OUT_DIR
+from modules.methods.ACEDNV.config import OUT_DIR
 
 
 def knowledgePanel_init():  # opens and initialized the visualization configs for knowledge panel 

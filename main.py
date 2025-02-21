@@ -1,6 +1,13 @@
 import numpy as np
 import pandas as pd
+import os
+import sys
+
 from modules.dataloader import dataloader
+
+# insert ACE-DNV submodules to be callable inside our code
+inner_project_path = os.path.abspath("modules/methods/ACEDNV")
+sys.path.insert(0, inner_project_path)
 
 ### Load Methods
 from modules.methods.IVT import ivt
@@ -8,7 +15,8 @@ from modules.methods.IDT import idt
 from modules.methods.gazeNet.myRun import pred as gazeNet
 from modules.methods.remodnav.myRun import pred as remodnav 
 from modules.methods.I2MC.I2MC_api import run as i2mc
-
+from modules.methods.ACEDNV.modules.eventDetector import pred_detector as ACE_predictor
+from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
 
 ### Main body of execution
 
@@ -49,7 +57,13 @@ remo_res = remodnav(df)
 
 # print(remo_res)
 
+# ACE-DNV
 
+ds_x, ds_y = aceReader()
+ds_x = np.array(ds_x, dtype=object); 
+if ds_y: ds_y = np.array(ds_y, dtype=object)
 
+ace_res = ACE_predictor(ds_x, ds_y, "modules/methods/ACEDNV/model-zoo/random_forest.pkl")
+print("done")
 
 
