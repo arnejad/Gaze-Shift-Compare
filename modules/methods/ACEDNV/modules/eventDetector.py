@@ -74,99 +74,7 @@ def eventDetector_new(feats, lbls):
 
     return f1_e, f1_s
 
-    preds = torch.from_numpy(preds)
-    lbls = torch.from_numpy(y_test)    
-    print_scores(preds, lbls, 0, 'RF')
 
-    pickle.dump(clf, open(OUT_DIR+'/models/RF.sav', 'wb'))
-
-
-    
-
-    lbl_list = np.unique(lbls)
-    for c in lbl_list:
-        y = np.array(y_train)
-        y[y!=c] = 10
-        y[y==c] = 1
-        y[y==10] = 0
-        clf = RandomForestClassifier(random_state=0, criterion='gini', n_estimators=40)
-        clf.fit(X_train, y)
-        preds = clf.predict(X_test)
-        preds = torch.from_numpy(preds)
-        y = np.array(y_test)
-        y[y!=c] = 10
-        y[y==c] = 1
-        y[y==10] = 0
-        lbls = torch.from_numpy(y)
-        print_scores(preds, lbls, 0, 'RF')
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    fig, axs = visual.knowledgePanel_init()
-
-    feats = feats[0]
-    lbls = lbls[0]
-
-
-    patchSims = feats[:, 4]
-    gazeVels = feats[:, 0]
-    gazeDirs = feats[:,1]
-    headVels = feats[:,2]
-    headDirs = feats[:,3]
-
-    PATCH_SIM_THRESH = 75
-    ENV_CHANGE_THRESH = 0.01
-    GAZE_DIST_THRESH = 4
-    GAZE_SMOOTHSLIDE_THRESH = 0.07
-    decisions = []
-    for i in range(len(feats)):
-
-        patchSim = patchSims[i]
-        gazeVel = gazeVels[i]
-        gazeDir = gazeDirs[i]
-        headVel = headVels[i]
-        headDir = headDirs[i]
-        
-        decision = 0
-        # final decision
-        visual.knowledgePanel_update(axs, None, np.column_stack((patchSims[:i+1], gazeVels[:i+1], headVels[:i+1], lbls[:i+1])))
-        plt.pause(0.0000001)
-        
-        if patchSim < PATCH_SIM_THRESH:
-            if gazeVel > GAZE_DIST_THRESH:
-                decision = 2 #saccade
-            elif gazeVel < GAZE_DIST_THRESH:
-                if headVel < ENV_CHANGE_THRESH:
-                    decision = 0 #fixation
-        
-        else:# patchDist < GAZE_SIM_THRESH:
-            if gazeVel > GAZE_SMOOTHSLIDE_THRESH:
-                if headVel > ENV_CHANGE_THRESH:
-                    decision = 3 #"gaze following" or tVOR and optokinetic
-                else:
-                    decision = 1 #"Gaze Pursuit"
-            else:
-                # if envMag > ENV_CHANGE_THRESH:
-                #     decision = 4 #"HeadPursuit"
-                # else:
-                    decision = 1 #"fixation"
-
-        if (decision == lbls[i]):
-            print("correct {} = {}".format(decision, lbls[i]))
-        else:
-            print("Wrong: {} instead of {}".format(decision, lbls[i]))
-        decisions.append(decision)
 
 
 def pred_detector(feats, lbls, modelDir):
@@ -196,7 +104,7 @@ def pred_detector(feats, lbls, modelDir):
 
     # if lbls: 
     # print_scores(preds, lbls, 0, 'RF')
-    # score(preds, lbls)
+    score(preds, lbls)
 
     return preds
 
@@ -218,8 +126,8 @@ def trainAndTest(x_train, y_train, x_test, y_test):
     clf.fit(x_train, y_train)
     preds = clf.predict(x_test)
 
-    f1_e, f1_s = score(preds, y_test)
+    # f1_e, f1_s = score(preds, y_test)
 
-    return f1_e, f1_s
+    return preds
 
 

@@ -15,8 +15,10 @@ from modules.methods.IDT import idt
 from modules.methods.gazeNet.myRun import pred as gazeNet
 from modules.methods.remodnav.myRun import pred as remodnav 
 from modules.methods.I2MC.I2MC_api import run as i2mc
-from modules.methods.ACEDNV.modules.eventDetector import pred_detector as ACE_predictor
+from modules.methods.ACEDNV.modules.eventDetector import pred_detector as acePredictor
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
+
+
 
 ### Main body of execution
 
@@ -54,8 +56,12 @@ gazeNet_res = gazeNet(df)
 # RemodNAV method
 df = df.drop(['evt', 'status'], axis=1)
 remo_res = remodnav(df)
-
 # print(remo_res)
+
+
+# Adhoc Alg
+
+
 
 # ACE-DNV
 
@@ -63,7 +69,10 @@ ds_x, ds_y = aceReader()
 ds_x = np.array(ds_x, dtype=object); 
 if ds_y: ds_y = np.array(ds_y, dtype=object)
 
-ace_res = ACE_predictor(ds_x, ds_y, "modules/methods/ACEDNV/model-zoo/random_forest.pkl")
+ace_res = acePredictor(ds_x, ds_y, "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl")
+
+
+
 print("done")
 
 

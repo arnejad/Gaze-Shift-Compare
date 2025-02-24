@@ -3,3 +3,4 @@
 /modules/methods/__pycache__
 /modules/methods/irf-master
 *.pyc
+/modules/methods/ACEDNV/model-zoo/
