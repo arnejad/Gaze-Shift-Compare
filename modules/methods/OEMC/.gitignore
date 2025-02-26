@@ -1,0 +1,16 @@
+hmr_classification/
+gaze-com-classification/
+cached/
+data/
+etra2016-ibdt*
+gazecom_arff/
+models/
+outputs/
+toy_set/
+__pycache__
+*.tgz
+*.pdf
+*.zip
+*.avi
+results.md
+metricas.md

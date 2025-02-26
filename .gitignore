@@ -4,3 +4,4 @@
 /modules/methods/irf-master
 *.pyc
 /modules/methods/ACEDNV/model-zoo/
+/modules/methods/OEMC/final_models

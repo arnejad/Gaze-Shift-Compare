@@ -5,8 +5,10 @@ import sys
 
 from modules.dataloader import dataloader
 
-# insert ACE-DNV submodules to be callable inside our code
+# insert methods' submodules to be callable inside our code
 inner_project_path = os.path.abspath("modules/methods/ACEDNV")
+sys.path.insert(0, inner_project_path)
+inner_project_path = os.path.abspath("modules/methods/OEMC")
 sys.path.insert(0, inner_project_path)
 
 ### Load Methods
@@ -17,17 +19,28 @@ from modules.methods.remodnav.myRun import pred as remodnav
 from modules.methods.I2MC.I2MC_api import run as i2mc
 from modules.methods.ACEDNV.modules.eventDetector import pred_detector as acePredictor
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
+from modules.methods.ACEDNV.modules.scorer import score
+from modules.methods.adhoc.resReader import readResult as adhocPreCompPred
+from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
+from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
+from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
+
+from config import INP_DIR
+
+
+# UNDER DEVELOPMENT
 
 
 
 ### Main body of execution
 
 # loading the dataset
-data = dataloader()
+data, lables = dataloader()
 
 # TODO threshold to be optimized
 # IVT algorithm execution
 ivt_res = ivt(data[0], v_threshold=0.6)
+# f1_s, f1_e = score(ivt_res, lables[0])
 
 # IDT algorithm execution
 idt_res = idt(data[0], threshold=0.6)
@@ -60,8 +73,7 @@ remo_res = remodnav(df)
 
 
 # Adhoc Alg
-
-
+adhoc_res = adhocPreCompPred()
 
 # ACE-DNV
 
@@ -71,6 +83,19 @@ if ds_y: ds_y = np.array(ds_y, dtype=object)
 
 ace_res = acePredictor(ds_x, ds_y, "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl")
 
+
+# OEMC
+
+oemc_args = OEMC_ArgsReplicator()
+
+oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
+                                      stride=oemc_args.strides,frequency=250)
+oemc_pproc.process_folder(INP_DIR, 'cached/VU')
+
+oemcSimulator = OEMC_OnlineSimulator(oemc_args)
+# oemcSimulator.OEMC_pred()
+preds, gt = oemcSimulator.simulate(1)
+f1_s, f1_e = score(preds, gt)
 
 
 print("done")
