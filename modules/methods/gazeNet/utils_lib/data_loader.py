@@ -63,6 +63,7 @@ class EMDataset(Dataset, EventParser):
         """
 
         split_seqs = config['split_seqs']
+        split_seqs = True
         #mode = config['mode']
 
         #input is in fact diff(input), therefore we want +1 sample

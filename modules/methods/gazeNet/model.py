@@ -135,6 +135,7 @@ class BatchRNN(nn.Module):
         self.dropout_op = nn.Dropout(1-keep_prob)
 
     def forward(self, x):
+
         x, _ = self.rnn(x)
         x = x.contiguous()
         if self.bidirectional:

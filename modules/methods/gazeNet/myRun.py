@@ -148,11 +148,8 @@ etdata_pr = ETData()
 
 
 def pred(X_test):
-    _status = np.isnan(X_test['x']) | \
-              np.isnan(X_test['y']) | \
-              ~np.in1d(X_test['evt'], config['events'])
-    X_test['status'] = ~_status
-    test_dataset = EMDataset(config = config, gaze_data = [X_test])
+    
+    test_dataset = EMDataset(config = config, gaze_data = X_test)
     test_loader = GazeDataLoader(test_dataset, batch_size=config['batch_size'],
                                  num_workers=1,
                                  shuffle=False)

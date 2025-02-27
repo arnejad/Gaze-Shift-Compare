@@ -176,7 +176,7 @@ def eval_evt(etdata_gt, etdata_pr, n_events):
     return wer, cer, ke_, ks, f1e_, (evt_overlap, evt_gt, evt_pr)
 
 def run_infer(model, n_samples, data_loader, **kwargs):
-    fs = 500.
+    fs = 250. #used to be 500
     cuda = False if not("cuda" in kwargs) else kwargs["cuda"]
     use_tqdm = False if not("use_tqdm" in kwargs) else kwargs["use_tqdm"]
     perform_eval = True if not("eval" in kwargs) else kwargs["eval"]
@@ -248,7 +248,8 @@ def run_infer(model, n_samples, data_loader, **kwargs):
     print ('[FP], n_samples: %d, dur: %.2f' % (sample_accum, time.time()-t))
 
     preds = np.array(_etdata_pr, dtype=int)
-    return preds[:, 4]
+    gt = np.array(_etdata_gt, dtype=int)
+    return preds[:, 4], gt[:,4]
 
     if perform_eval:
         #run evaluation

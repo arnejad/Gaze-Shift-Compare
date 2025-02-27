@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import torch
 
-from modules.dataloader import dataloader
+from modules.dataloader import dataloader, converDataToGazeNet
 
 # insert methods' submodules to be callable inside our code
 inner_project_path = os.path.abspath("modules/methods/ACEDNV")
@@ -28,14 +29,16 @@ from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from config import INP_DIR
 
 
-# UNDER DEVELOPMENT
+# START UNDER DEV.
+
+# FINISHED UNDER DEV.
 
 
 
 ### Main body of execution
 
 # loading the dataset
-data, lables = dataloader()
+data, lables = dataloader(remove_blinks=True) # Note: Different methods have different dataloaders
 
 # TODO threshold to be optimized
 # IVT algorithm execution
@@ -50,19 +53,11 @@ i2mc_res = i2mc(data[0])
 
 
 # gazeNet execution
-data = np.array(data)
+data, lables = dataloader(remove_blinks=False) # Note: Different methods have different dataloaders
+df = converDataToGazeNet(data, lables, dummy=False)
 
-x_values = np.random.randint(0, 101, size=200)
-y_values = np.random.randint(0, 101, size=200)
-evt_values = np.random.randint(1, 4, size=200)
-df = pd.DataFrame({
-    'x': x_values,
-    'y': y_values,
-    'evt': evt_values
-})
-X_test_all = [df]
-gazeNet_res = gazeNet(df)
-
+gazeNet_res, gazeNet_gt = gazeNet(df)
+f1_s, f1_e = score(gazeNet_res, gazeNet_gt)
 # print(gazeNet_res)
 
 
@@ -87,13 +82,10 @@ ace_res = acePredictor(ds_x, ds_y, "modules/methods/ACEDNV/model-zoo/random_fore
 # OEMC
 
 oemc_args = OEMC_ArgsReplicator()
-
 oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
                                       stride=oemc_args.strides,frequency=250)
 oemc_pproc.process_folder(INP_DIR, 'cached/VU')
-
 oemcSimulator = OEMC_OnlineSimulator(oemc_args)
-# oemcSimulator.OEMC_pred()
 preds, gt = oemcSimulator.simulate(1)
 f1_s, f1_e = score(preds, gt)
 

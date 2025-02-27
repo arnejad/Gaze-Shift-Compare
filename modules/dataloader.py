@@ -2,11 +2,12 @@
 from os import listdir
 from os.path import isfile, join, isdir
 import numpy as np
+import pandas as pd
 from config import INP_DIR, CLOUD_FORMAT, VIDEO_SIZE, DATASET
 
 
 
-def _load_PI():
+def _load_PI(remove_blinks=False):
     # list the folders in the directory
     recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
     ds_x = []
@@ -59,10 +60,10 @@ def _load_PI():
         # gazeMatch = gazes[indcs]
         # # TMatch = T[indcs]
 
-        rmidcs = np.where(labels == -1) # remove blinks
-
-        labels = np.delete(labels, rmidcs)
-        gazes = np.delete(gazes, rmidcs, axis=0)
+        if remove_blinks:
+            rmidcs = np.where(labels == -1) # remove blinks
+            labels = np.delete(labels, rmidcs)
+            gazes = np.delete(gazes, rmidcs, axis=0)
 
 
         # # np.savetxt( r + '_gazeMatch.csv', gazeMatch, delimiter=',')
@@ -78,10 +79,74 @@ def _load_GiW():
     print("TODO")
     # to work on
 
-def dataloader():
+def dataloader(remove_blinks):
     if DATASET == "PI":
-        return _load_PI()
+        return _load_PI(remove_blinks)
     elif DATASET == "GiW":
         return _load_GiW()
     
     else: raise Exception("The selected dataset is not correct")
+
+
+def converDataToGazeNet_old(data, labels, dummy=False):
+    
+    
+    data = np.concatenate(data, axis=0)
+    labels = np.concatenate(labels, axis=0)
+    x_values = np.random.randint(0, 101, size=200)
+    y_values = np.random.randint(0, 101, size=200)
+    evt_values = np.random.randint(1, 4, size=200)
+
+    if not dummy:
+        df = pd.DataFrame({
+            'x': data[:, 0],
+            'y': data[:, 1],
+            'evt': labels
+        })
+    else:
+        df = pd.DataFrame({
+        'x': x_values,
+        'y': y_values,
+        'evt': evt_values
+        })
+
+    df = df[df.evt != -1]
+
+    # matching our labels with gazeNet standard
+    df.loc[df['evt'] == 1, 'evt'] = 2
+    df.loc[df['evt'] == 0, 'evt'] = 1
+    
+
+    # df_all = [df]
+
+    return df
+
+
+
+def converDataToGazeNet(data, labels, dummy=False):
+    
+    all_data = []
+    
+    for i, recording in enumerate(data):
+        df = pd.DataFrame({
+            'x': recording[:, 0],
+            'y': recording[:, 1],
+            'evt': labels[i]
+        })
+
+        # matching our labels with gazeNet standard
+        df.loc[df['evt'] == 1, 'evt'] = 2   # our saccade 1 to gazeNet saccade 2
+        df.loc[df['evt'] == 0, 'evt'] = 1   # our fixation 0 to gazeNet fixation 1
+        df.loc[df['evt'] == -1, 'evt'] = 3  # our blink -1 to gazeNet blink 3
+
+        _status = np.isnan(df['x']) | \
+              np.isnan(df['y']) | \
+              ~np.in1d(df['evt'], [1,2,3])
+        df['status'] = ~_status    
+        
+
+        all_data.append(df)
+
+    # df_all = [df]
+
+    return all_data
