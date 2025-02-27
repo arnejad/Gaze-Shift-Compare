@@ -2,6 +2,9 @@
 # The code for this algorithm is extracted from 
 # https://github.com/mebirtukan/Evaluation-of-eye-movement-event-detection-algorithms/blob/main/I_VT_Classifier.ipynb
 # and redistributed under MIT license.
+
+# quote from the related article: 
+# The dispersion threshold can be set to 0.5 to 1∘ of visual angle if the distance from the eye to the screen is known.
 ############################################################################################
 
 from scipy.spatial import distance

@@ -3,7 +3,13 @@
 # The code for this algorithm is extracted from 
 # https://github.com/mebirtukan/Evaluation-of-eye-movement-event-detection-algorithms/blob/main/I_VT_Classifier.ipynb
 # and redistributed under MIT license.
+
+
+# The saccade recall reaches 98% and the fixation recall 
+# is 25% at the lowest velocity threshold value of 0.1 px/ms because, at this threshold value, most points are classified as saccades.
+# Therefore, in this case, the optimum velocity threshold value for I-VT is 0.5 px/ms. 
 ############################################################################################
+
 
 import numpy as np
 

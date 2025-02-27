@@ -31,8 +31,9 @@ from config import INP_DIR
 
 # START UNDER DEV.
 
-# FINISHED UNDER DEV.
 
+
+# FINISHED UNDER DEV.
 
 
 ### Main body of execution
@@ -68,7 +69,10 @@ remo_res = remodnav(df)
 
 
 # Adhoc Alg
-adhoc_res = adhocPreCompPred()
+# TODO: investigate the mismatch why blinks are slightly different in adhoc results and manual labels
+adhoc_res, lbls = adhocPreCompPred()
+
+f1_s, f1_e = score(np.concatenate(adhoc_res), np.concatenate(lbls))
 
 # ACE-DNV
 
