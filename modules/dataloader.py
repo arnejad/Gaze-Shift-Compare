@@ -3,11 +3,13 @@ from os import listdir
 from os.path import isfile, join, isdir
 import numpy as np
 import pandas as pd
+from modules.car2spher import calc as pix2degConv
+
 from config import INP_DIR, CLOUD_FORMAT, VIDEO_SIZE, DATASET
 
 
 
-def _load_PI(remove_blinks=False):
+def _load_PI(remove_blinks=False, degConv=False):
     # list the folders in the directory
     recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
     ds_x = []
@@ -48,6 +50,9 @@ def _load_PI(remove_blinks=False):
 
         gazes = tempRead[:,[1,2]]
 
+        if degConv:
+            gazes = pix2degConv(gazes)
+
         labels = np.array(np.genfromtxt(join(directory, r+"_manual coding"), delimiter=' ')[:,1], dtype=int)
 
         # T = tempRead[1:, 0] #extract the time points
@@ -79,9 +84,9 @@ def _load_GiW():
     print("TODO")
     # to work on
 
-def dataloader(remove_blinks):
+def dataloader(remove_blinks, degConv=False):
     if DATASET == "PI":
-        return _load_PI(remove_blinks)
+        return _load_PI(remove_blinks, degConv)
     elif DATASET == "GiW":
         return _load_GiW()
     

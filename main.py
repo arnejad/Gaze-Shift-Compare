@@ -38,12 +38,14 @@ from config import INP_DIR
 
 ### Main body of execution
 
+# Note: Different methods might have different dataloaders or different settings for reading
+
 # loading the dataset
-data, lables = dataloader(remove_blinks=True) # Note: Different methods have different dataloaders
+data, lables = dataloader(remove_blinks=True, degConv=True) # Note: Different methods have different dataloaders
 
 # TODO threshold to be optimized
 # IVT algorithm execution
-ivt_res = ivt(data[0], v_threshold=0.6)
+ivt_res = ivt(data[0], v_threshold=0.5)
 # f1_s, f1_e = score(ivt_res, lables[0])
 
 # IDT algorithm execution
@@ -54,7 +56,7 @@ i2mc_res = i2mc(data[0])
 
 
 # gazeNet execution
-data, lables = dataloader(remove_blinks=False) # Note: Different methods have different dataloaders
+data, lables = dataloader(remove_blinks=False)
 df = converDataToGazeNet(data, lables, dummy=False)
 
 gazeNet_res, gazeNet_gt = gazeNet(df)

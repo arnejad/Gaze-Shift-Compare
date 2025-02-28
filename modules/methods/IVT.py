@@ -13,7 +13,8 @@
 
 import numpy as np
 
-# we assume that the frequency is 500Hz so there is 2ms gap between every two samples
+# In the origin code they assumed that the frequency is 500Hz so there is 2ms gap between every two samples
+# we changed 2ms to 4ms since the sampling rate of our device is 250
 def ivt(data,v_threshold):
   Xs = data[:,[0]]
   Ys = data[:,[1]]
@@ -32,7 +33,7 @@ def ivt(data,v_threshold):
   for i in range(len(diffX)):
     Velocity.append(diffX[i] + diffY[i])
     #direction.append(atan2(diffX[i], diffY[i]))
-    velocity=np.divide(Velocity, 2)
+    velocity=np.divide(Velocity, 4)
     velocity=np.absolute(velocity)
 
   global mvmts 
