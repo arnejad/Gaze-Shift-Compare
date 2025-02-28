@@ -378,5 +378,7 @@ def readDataset():
             np.savetxt(OUT_DIR+'frames_p' + str(participantNum) + '_a' + str(activityNum) +  '.csv', frames, delimiter=',')
             np.savetxt(OUT_DIR+'gazes_p' + str(participantNum) + '_a' + str(activityNum) +  '.csv', gazeMatch, delimiter=',')
             print("Data successfully loaded for participant " + str(participantNum) + " task: " + str(activityNum))
-        
+    
+    ds_x = np.array(ds_x, dtype=object); 
+    if ds_y: ds_y = np.array(ds_y, dtype=object)
     return ds_x, ds_y

@@ -12,10 +12,11 @@
 
 
 import numpy as np
-
+from config import ET_SAMPLING_RATE
 # In the origin code they assumed that the frequency is 500Hz so there is 2ms gap between every two samples
-# we changed 2ms to 4ms since the sampling rate of our device is 250
+# we changed 2ms to read from the config file
 def ivt(data,v_threshold):
+  t_dist = (1/ET_SAMPLING_RATE)*1000
   Xs = data[:,[0]]
   Ys = data[:,[1]]
 
@@ -33,7 +34,7 @@ def ivt(data,v_threshold):
   for i in range(len(diffX)):
     Velocity.append(diffX[i] + diffY[i])
     #direction.append(atan2(diffX[i], diffY[i]))
-    velocity=np.divide(Velocity, 4)
+    velocity=np.divide(Velocity, t_dist)
     velocity=np.absolute(velocity)
 
   global mvmts 

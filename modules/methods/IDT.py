@@ -3,8 +3,9 @@
 # https://github.com/mebirtukan/Evaluation-of-eye-movement-event-detection-algorithms/blob/main/I_VT_Classifier.ipynb
 # and redistributed under MIT license.
 
-# quote from the related article: 
+## quotes from the related article: 
 # The dispersion threshold can be set to 0.5 to 1∘ of visual angle if the distance from the eye to the screen is known.
+# The duration threshold is typically set to a value between 100 and 200 ms depending on task processing demands.
 ############################################################################################
 
 from scipy.spatial import distance
@@ -34,9 +35,9 @@ def calcu_disp(data, disp_thres):
   #Dispersion=(X+Y)
   #Dispersion=np.absolute(Dispersion)
   Dispersion=np.absolute(disper)
-  print(Dispersion)
-  print('Max Dipersion=', max(Dispersion))
-  print('min disp=', min(Dispersion))
+  # print(Dispersion)
+  # print('Max Dipersion=', max(Dispersion))
+  # print('min disp=', min(Dispersion))
 
   for D in Dispersion:
     if(D<disp_thres):

@@ -1,10 +1,9 @@
 import numpy as np
-import pandas as pd
 import os
 import sys
-import torch
 
 from modules.dataloader import dataloader, converDataToGazeNet
+
 
 # insert methods' submodules to be callable inside our code
 inner_project_path = os.path.abspath("modules/methods/ACEDNV")
@@ -12,15 +11,17 @@ sys.path.insert(0, inner_project_path)
 inner_project_path = os.path.abspath("modules/methods/OEMC")
 sys.path.insert(0, inner_project_path)
 
+
+from modules.methods.ACEDNV.modules.scorer import score
+
 ### Load Methods
 from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
 from modules.methods.gazeNet.myRun import pred as gazeNet
 from modules.methods.remodnav.myRun import pred as remodnav 
-from modules.methods.I2MC.I2MC_api import run as i2mc
+# from modules.methods.I2MC.I2MC_api import run as i2mc
 from modules.methods.ACEDNV.modules.eventDetector import pred_detector as acePredictor
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
-from modules.methods.ACEDNV.modules.scorer import score
 from modules.methods.adhoc.resReader import readResult as adhocPreCompPred
 from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
 from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
@@ -41,7 +42,7 @@ from config import INP_DIR
 # Note: Different methods might have different dataloaders or different settings for reading
 
 # loading the dataset
-data, lables = dataloader(remove_blinks=True, degConv=True) # Note: Different methods have different dataloaders
+data, lables = dataloader(remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
 
 # TODO threshold to be optimized
 # IVT algorithm execution
@@ -78,10 +79,7 @@ f1_s, f1_e = score(np.concatenate(adhoc_res), np.concatenate(lbls))
 
 # ACE-DNV
 
-ds_x, ds_y = aceReader()
-ds_x = np.array(ds_x, dtype=object); 
-if ds_y: ds_y = np.array(ds_y, dtype=object)
-
+ds_x, ds_y = aceReader()       #ACE-DNV's dataloader
 ace_res = acePredictor(ds_x, ds_y, "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl")
 
 
