@@ -250,6 +250,7 @@ def run_infer(model, n_samples, data_loader, **kwargs):
     preds = np.array(_etdata_pr, dtype=int)
     gt = np.array(_etdata_gt, dtype=int)
     return preds[:, 4], gt[:,4]
+    # return preds[:, 4]
 
     if perform_eval:
         #run evaluation

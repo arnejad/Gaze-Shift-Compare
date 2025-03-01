@@ -1,12 +1,9 @@
 import numpy as np
-import modules.visualizer as visual
-import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from modules.decisionMaker import print_scores as print_scores
 from sklearn.model_selection import train_test_split
 from modules.preprocess import data_stats, divider
 from modules.scorer import score
-import matplotlib.pyplot as plt
 import torch
 import pickle
 import joblib
@@ -77,20 +74,16 @@ def eventDetector_new(feats, lbls):
 
 
 
-def pred_detector(feats, lbls, modelDir):
+def ACEDNV(feats, modelDir):
 
     # if len([feats.size]) > 1:
-    feats = np.concatenate(feats)
-    feats = np.squeeze(feats)
+    # feats = np.concatenate(feats)
+    # feats = np.squeeze(feats)
     
    
-    lbls = np.squeeze(lbls)
-    lbls = np.concatenate(lbls)
+    # lbls = np.squeeze(lbls)
+    # lbls = np.concatenate(lbls)
 
-
-    # clf = pickle.load(open(modelDir, 'rb'))
-    # with open('model-zoo/rf_model', 'rb') as f:
-    #     clf = pickle.load(f, encoding='latin1')
 
     clf = joblib.load(modelDir)
 
@@ -99,12 +92,12 @@ def pred_detector(feats, lbls, modelDir):
     
     # if lbls: 
     preds = torch.from_numpy(preds)
-    lbls = torch.from_numpy(lbls)
+    # lbls = torch.from_numpy(lbls)
         
 
     # if lbls: 
     # print_scores(preds, lbls, 0, 'RF')
-    score(preds, lbls)
+    # score(preds, lbls)
 
     return preds
 

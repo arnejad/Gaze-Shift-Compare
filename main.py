@@ -17,22 +17,31 @@ from modules.methods.ACEDNV.modules.scorer import score
 ### Load Methods
 from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
-from modules.methods.gazeNet.myRun import pred as gazeNet
+from modules.methods.gazeNet.myRun import gazeNet
 from modules.methods.remodnav.myRun import pred as remodnav 
 # from modules.methods.I2MC.I2MC_api import run as i2mc
-from modules.methods.ACEDNV.modules.eventDetector import pred_detector as acePredictor
+from modules.methods.ACEDNV.modules.eventDetector import ACEDNV
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
 from modules.methods.adhoc.resReader import readResult as adhocPreCompPred
 from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
 from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
 from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
+from modules.utils import evaluate
 
 from config import INP_DIR
 
 
 # START UNDER DEV.
 
-
+# update OEMC to predict participants individually
+# Warning: SCORES ARE ABOUT 0%
+oemc_args = OEMC_ArgsReplicator()
+oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
+                                      stride=oemc_args.strides,frequency=250)
+oemc_pproc.process_folder(INP_DIR, 'cached/VU')
+oemcSimulator = OEMC_OnlineSimulator(oemc_args)
+preds, gt = oemcSimulator.simulate(1)
+f1_s, f1_e = score(preds, gt, printBool=True)
 
 # FINISHED UNDER DEV.
 
@@ -42,27 +51,23 @@ from config import INP_DIR
 # Note: Different methods might have different dataloaders or different settings for reading
 
 # loading the dataset
-data, lables = dataloader(remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
+data, labels = dataloader(remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
 
-# TODO threshold to be optimized
-# IVT algorithm execution
-ivt_res = ivt(data[0], v_threshold=0.5)
-# f1_s, f1_e = score(ivt_res, lables[0])
-
-# IDT algorithm execution
-idt_res = idt(data[0], threshold=0.6)
+methods = [
+    (idt, {"threshold": 15}),
+    (ivt, {"v_threshold": 1.2})
+]
+f1s, f1e = evaluate(methods, data, labels)
 
 # IM2C algorithm execution
-i2mc_res = i2mc(data[0])
+# i2mc_res = i2mc(data[0])
 
 
 # gazeNet execution
-data, lables = dataloader(remove_blinks=False)
-df = converDataToGazeNet(data, lables, dummy=False)
-
-gazeNet_res, gazeNet_gt = gazeNet(df)
-f1_s, f1_e = score(gazeNet_res, gazeNet_gt)
-# print(gazeNet_res)
+# Warning: SCORES ARE ABOUT 1%
+data, labels = dataloader(remove_blinks=False)
+df = converDataToGazeNet(data, labels, dummy=False)
+f1s, f1e = evaluate([(gazeNet, {})], df, labels)
 
 
 # RemodNAV method
@@ -74,17 +79,15 @@ remo_res = remodnav(df)
 # Adhoc Alg
 # TODO: investigate the mismatch why blinks are slightly different in adhoc results and manual labels
 adhoc_res, lbls = adhocPreCompPred()
+f1_s, f1_e = score(np.concatenate(adhoc_res), np.concatenate(lbls), printBool=True)
 
-f1_s, f1_e = score(np.concatenate(adhoc_res), np.concatenate(lbls))
 
 # ACE-DNV
-
 ds_x, ds_y = aceReader()       #ACE-DNV's dataloader
-ace_res = acePredictor(ds_x, ds_y, "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl")
+f1s, f1e = evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
 
 
 # OEMC
-
 oemc_args = OEMC_ArgsReplicator()
 oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
                                       stride=oemc_args.strides,frequency=250)

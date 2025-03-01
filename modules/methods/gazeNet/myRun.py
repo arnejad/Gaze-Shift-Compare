@@ -147,7 +147,7 @@ etdata_pr = ETData()
 #     etdata_pr.plot(show=False, save=True, spath='%s'%spath)
 
 
-def pred(X_test):
+def gazeNet(X_test):
     
     test_dataset = EMDataset(config = config, gaze_data = X_test)
     test_loader = GazeDataLoader(test_dataset, batch_size=config['batch_size'],

@@ -51,7 +51,7 @@ def print_results(sample_preds, sample_gt, event_preds, event_gt, printBool=True
     # f1_e = [f1_se['0']['f1-score'], f1_se['1']['f1-score'], f1_se['2']['f1-score'], f1_se['3']['f1-score']]
     # f1_s = [f1_ss['0']['f1-score'], f1_ss['1']['f1-score'], f1_ss['2']['f1-score'], f1_ss['3']['f1-score']]
 
-    return f1_s["weighted avg"]["f1-score"], f1_e["weighted avg"]["f1-score"]
+    return f1_s["1"]["f1-score"], f1_e["1"]["f1-score"]
 
 def score(sample_preds, sample_gt, printBool):
     event_preds, event_gt = count_event(sample_preds, sample_gt)

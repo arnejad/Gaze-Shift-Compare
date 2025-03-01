@@ -150,7 +150,7 @@ def converDataToGazeNet(data, labels, dummy=False):
         df['status'] = ~_status    
         
 
-        all_data.append(df)
+        all_data.append([df])
 
     # df_all = [df]
 

@@ -3,58 +3,11 @@ from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
 from modules.dataloader import dataloader
 from modules.methods.ACEDNV.modules.scorer import score as scorer
+from modules.utils import drawProgress
 import matplotlib.pyplot as plt
 
 
 plt.ion()
-
-
-def drawProgress_justMean(sample_scores, event_scores, plotted_threshs, alg_name, fig=None, ax=None):
-
-    if fig is None or ax is None:
-        fig, ax = plt.subplots(figsize=(8, 6))
-    ax.clear()
-    ax.plot(plotted_threshs, sample_scores, marker='o', label='sample-based')
-    ax.plot(plotted_threshs, event_scores, marker='s', label='event-based')
-    ax.title("Score Progress")
-    ax.xlabel("Iteration")
-    ax.ylabel("Score")
-    ax.legend()
-
-    ax.draw()
-    # Brief pause so the GUI event loop can update the figure
-    ax.pause(0.1)
-
-    return fig, ax
-
-
-def drawProgress(sample_scores, event_scores, plotted_threshs, alg_name, fig=None, ax=None):
-
-    sample_means = [np.mean(accs) for accs in sample_scores]
-    event_means = [np.mean(accs) for accs in event_scores]
-
-    if fig is None or ax is None:
-        fig, ax = plt.subplots(figsize=(8, 6))
-
-    ax.clear()
-
-    for x, accs_list in zip(plotted_threshs, sample_scores):
-        # We'll scatter them all vertically at x
-        ax.scatter([x]*len(accs_list), accs_list, color='blue', alpha=0.5)
-
-    for x, accs_list in zip(plotted_threshs, event_scores):
-        # We'll scatter them all vertically at x
-        ax.scatter([x]*len(accs_list), accs_list, color='red', alpha=0.5)
-
-    ax.plot(plotted_threshs, sample_means, 'o-', color='blue', label='Sample-level')
-    ax.plot(plotted_threshs, event_means, 'o-', color='red', label='Event-level')
-    ax.set_title("Accuracies vs Threshold (Multiple Measurements)")
-    ax.set_xlabel("Threshold")
-    ax.set_ylabel("F1-Score")
-    ax.legend()
-    plt.draw()
-    plt.pause(0.1)
-    return fig, ax
 
 
 def optimize_threshold(
