@@ -57,3 +57,9 @@ def score(sample_preds, sample_gt, printBool):
     event_preds, event_gt = count_event(sample_preds, sample_gt)
     f1_s, f1_e = print_results(sample_preds, sample_gt, event_preds, event_gt, printBool)
     return f1_s, f1_e
+
+
+
+ 
+
+

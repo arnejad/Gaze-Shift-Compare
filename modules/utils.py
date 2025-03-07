@@ -67,10 +67,12 @@ def evaluate(methodList, data, labels):
     
     f1s_all = []
     f1e_all = []
+    ash_scores_all = []
     for method, params in methodList:
         print("method: " + method.__name__)
         f1s_m=[] #all f1 scores obtained in for this threshold on all recording
         f1e_m=[]
+        ash_scores_m = []
         for i, rec in enumerate(data):
             print("rec: " + str(i))
             # Compute the score using the passed function
@@ -79,18 +81,62 @@ def evaluate(methodList, data, labels):
             if method.__name__ == "idt":
                 adjusted_labels = labels[i][1:-1] 
             
-            preds = method(rec, **params)
-           
+            if method.__name__ != "adhoc":
+                preds = method(rec, **params)
+            else: preds = rec
+
             if method.__name__ == "gazeNet":
                 adjusted_labels = preds[1] 
                 preds = preds[0]
-            if method.__name__ == "ACEDNV":
+            if method.__name__ == "ACEDNV" or method.__name__ == "adhoc":
                 adjusted_labels = labels[i]
+            
             f1s_mi, f1e_mi = scorer(preds, adjusted_labels, printBool=False)   #f1 scores for this recording on this threshold
+            ash_score_mi = ashScore(preds, adjusted_labels)
             f1s_m.append(f1s_mi)
             f1e_m.append(f1e_mi)
+            ash_scores_m.append(ash_score_mi)
         f1s_all.append(f1s_m)
         f1e_all.append(f1e_m)
+        ash_scores_all.append(ash_scores_m)
 
-    return f1s_all, f1e_all
+    return f1s_all, f1e_all, ash_scores_all
         
+
+
+
+def getRanges(arr):
+    diff = np.diff(arr, prepend=0, append=0) # Find indices where value changes
+    start_indices = np.where(diff == 1)[0] # Start indices of 1s (where diff == 1)
+    end_indices = np.where(diff == -1)[0] - 1    # End indices of 1s (where diff == -1) - 1 to get the correct end index
+    chunks = np.column_stack((start_indices, end_indices)) # Combine start and end indices into tuples
+    return chunks
+
+
+
+def ashScore(gt, pred):
+    
+    # get the gt->pred matching score
+    ranges = getRanges(gt)
+    innerScore = 0
+    for event in ranges:
+        TP_i = np.sum(pred[event[0]:event[1]+1])
+        n_i = event[1] - event[0] + 1
+        innerScore += TP_i/n_i
+
+    GT_match_score = innerScore/(2*ranges.shape[0])
+
+    # get pred->gt matching score
+    ranges = getRanges(pred)
+    innerScore = 0
+    for event in ranges:
+        TP_i = np.sum(gt[event[0]:event[1]+1])
+        n_i = event[1] - event[0] + 1
+        innerScore += TP_i/n_i
+
+    Pred_match_score = TP_i/(2*ranges.shape[0])
+
+    return Pred_match_score + GT_match_score
+
+    print(ranges)
+

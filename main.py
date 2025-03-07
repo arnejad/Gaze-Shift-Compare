@@ -22,11 +22,12 @@ from modules.methods.remodnav.myRun import pred as remodnav
 # from modules.methods.I2MC.I2MC_api import run as i2mc
 from modules.methods.ACEDNV.modules.eventDetector import ACEDNV
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
-from modules.methods.adhoc.resReader import readResult as adhocPreCompPred
+from modules.methods.adhoc.resReader import adhoc as adhocPreCompPred
 from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
 from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
 from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
-from modules.utils import evaluate
+from modules.utils import evaluate, ashScore
+
 
 from config import INP_DIR
 
@@ -57,7 +58,7 @@ methods = [
     (idt, {"threshold": 15}),
     (ivt, {"v_threshold": 1.2})
 ]
-f1s, f1e = evaluate(methods, data, labels)
+f1s, f1e, ashscore = evaluate(methods, data, labels)
 
 # IM2C algorithm execution
 # i2mc_res = i2mc(data[0])
@@ -67,7 +68,7 @@ f1s, f1e = evaluate(methods, data, labels)
 # Warning: SCORES ARE ABOUT 1%
 data, labels = dataloader(remove_blinks=False)
 df = converDataToGazeNet(data, labels, dummy=False)
-f1s, f1e = evaluate([(gazeNet, {})], df, labels)
+f1s, f1e, ashscore = evaluate([(gazeNet, {})], df, labels)
 
 
 # RemodNAV method
@@ -84,7 +85,7 @@ f1_s, f1_e = score(np.concatenate(adhoc_res), np.concatenate(lbls), printBool=Tr
 
 # ACE-DNV
 ds_x, ds_y = aceReader()       #ACE-DNV's dataloader
-f1s, f1e = evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
+f1s, f1e, ashscore = evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
 
 
 # OEMC
@@ -94,7 +95,7 @@ oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
 oemc_pproc.process_folder(INP_DIR, 'cached/VU')
 oemcSimulator = OEMC_OnlineSimulator(oemc_args)
 preds, gt = oemcSimulator.simulate(1)
-f1_s, f1_e = score(preds, gt)
+f1_s, f1_e, ashscore = score(preds, gt)
 
 
 print("done")

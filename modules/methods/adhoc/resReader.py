@@ -4,7 +4,7 @@ from config import INP_DIR
 import numpy as np
 
 
-def readResult():
+def adhoc():
     recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
     
     predsAll = []
