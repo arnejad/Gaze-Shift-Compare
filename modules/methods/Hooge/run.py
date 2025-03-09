@@ -7,7 +7,7 @@ import numpy as np
 from modules.utils import cacheLoadedData
 from config import MATLAB_PATH, INP_DIR
 
-def runHooge(data, labels):
+def runHooge(data):
 
     print("Executing Hooget Fixation Detection...")
     cacheLoadedData(data)

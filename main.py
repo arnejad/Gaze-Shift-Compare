@@ -34,7 +34,7 @@ from config import INP_DIR
 
 # START UNDER DEV.
 data, labels = dataloader(remove_blinks=True, degConv=True)    
-preds = runHooge(data, labels)
+preds = runHooge(data)
 f1s, f1e, ashscore = evaluate([(runHooge, {})], preds, labels)
 
 
