@@ -33,15 +33,11 @@ from config import INP_DIR
 
 
 # START UNDER DEV.
-data, labels = dataloader(remove_blinks=True, degConv=True)    
-preds = runHooge(data)
-f1s, f1e, ashscore = evaluate([(runHooge, {})], preds, labels)
 
 
 ### Main body of execution
 
 # Note: Different methods might have different dataloaders or different settings for reading
-
 
 # loading the dataset
 data, labels = dataloader(remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
@@ -72,8 +68,7 @@ remo_res = remodnav(df)
 # Adhoc Alg
 # TODO: investigate the mismatch why blinks are slightly different in adhoc results and manual labels
 adhoc_res, lbls = adhocPreCompPred()
-f1_s, f1_e = score(np.concatenate(adhoc_res), np.concatenate(lbls), printBool=True)
-
+f1_s, f1_e, ashscore = evaluate([(adhocPreCompPred, {})], adhoc_res, lbls)
 
 # ACE-DNV
 ds_x, ds_y = aceReader()       #ACE-DNV's dataloader
@@ -93,7 +88,10 @@ preds, gt = oemcSimulator.simulate(1)
 f1_s, f1_e, ashscore = score(preds, gt, printBool=True)
 
 
-
+# Hooge algorithm
+data, labels = dataloader(remove_blinks=True, degConv=True)    
+preds = runHooge(data)
+f1s, f1e, ashscore = evaluate([(runHooge, {})], preds, labels)
 
 
 
