@@ -5,3 +5,4 @@
 *.pyc
 /modules/methods/ACEDNV/model-zoo/
 /modules/methods/OEMC/final_models
+/degs_cached

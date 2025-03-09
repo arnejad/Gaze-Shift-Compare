@@ -48,10 +48,12 @@ def _load_PI(remove_blinks=False, degConv=False):
         #read gaze files
         tempRead = np.genfromtxt(gazePath, delimiter=' ')
 
+        if degConv:
+            gazeTimes = tempRead[:,0]
         gazes = tempRead[:,[1,2]]
 
         if degConv:
-            gazes = pix2degConv(gazes)
+            gazes = np.column_stack((gazeTimes, pix2degConv(gazes)))
 
         labels = np.array(np.genfromtxt(join(directory, r+"_manual coding"), delimiter=' ')[:,1], dtype=int)
 
@@ -69,7 +71,6 @@ def _load_PI(remove_blinks=False, degConv=False):
             rmidcs = np.where(labels == -1) # remove blinks
             labels = np.delete(labels, rmidcs)
             gazes = np.delete(gazes, rmidcs, axis=0)
-
 
         # # np.savetxt( r + '_gazeMatch.csv', gazeMatch, delimiter=',')
 

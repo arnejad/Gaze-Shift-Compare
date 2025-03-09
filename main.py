@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import sys
+import subprocess
 
 from modules.dataloader import dataloader, converDataToGazeNet
 
@@ -26,30 +27,21 @@ from modules.methods.adhoc.resReader import adhoc as adhocPreCompPred
 from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
 from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
 from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
-from modules.utils import evaluate, ashScore
-
-
+from modules.utils import evaluate
+from modules.methods.Hooge.run import runHooge
 from config import INP_DIR
 
 
 # START UNDER DEV.
-
-# update OEMC to predict participants individually
-# Warning: SCORES ARE ABOUT 0%
-oemc_args = OEMC_ArgsReplicator()
-oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
-                                      stride=oemc_args.strides,frequency=250)
-oemc_pproc.process_folder(INP_DIR, 'cached/VU')
-oemcSimulator = OEMC_OnlineSimulator(oemc_args)
-preds, gt = oemcSimulator.simulate(1)
-f1_s, f1_e = score(preds, gt, printBool=True)
-
-# FINISHED UNDER DEV.
+data, labels = dataloader(remove_blinks=True, degConv=True)    
+preds = runHooge(data, labels)
+f1s, f1e, ashscore = evaluate([(runHooge, {})], preds, labels)
 
 
 ### Main body of execution
 
 # Note: Different methods might have different dataloaders or different settings for reading
+
 
 # loading the dataset
 data, labels = dataloader(remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
@@ -66,7 +58,7 @@ f1s, f1e, ashscore = evaluate(methods, data, labels)
 
 # gazeNet execution
 # Warning: SCORES ARE ABOUT 1%
-data, labels = dataloader(remove_blinks=False)
+data, labels = dataloader(remove_blinks=False, degConv=False)
 df = converDataToGazeNet(data, labels, dummy=False)
 f1s, f1e, ashscore = evaluate([(gazeNet, {})], df, labels)
 
@@ -89,13 +81,20 @@ f1s, f1e, ashscore = evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/mod
 
 
 # OEMC
+
+# update OEMC to predict participants individually
+# Warning: SCORES ARE ABOUT 0%
 oemc_args = OEMC_ArgsReplicator()
 oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
                                       stride=oemc_args.strides,frequency=250)
 oemc_pproc.process_folder(INP_DIR, 'cached/VU')
 oemcSimulator = OEMC_OnlineSimulator(oemc_args)
 preds, gt = oemcSimulator.simulate(1)
-f1_s, f1_e, ashscore = score(preds, gt)
+f1_s, f1_e, ashscore = score(preds, gt, printBool=True)
+
+
+
+
 
 
 print("done")

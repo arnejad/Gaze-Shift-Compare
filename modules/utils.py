@@ -1,6 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from modules.methods.ACEDNV.modules.scorer import score as scorer
+from os import listdir
+from os.path import isfile, join, isdir
+from config import INP_DIR
+import os
+
 
 def drawProgress_justMean(sample_scores, event_scores, plotted_threshs, alg_name, fig=None, ax=None):
 
@@ -81,14 +86,14 @@ def evaluate(methodList, data, labels):
             if method.__name__ == "idt":
                 adjusted_labels = labels[i][1:-1] 
             
-            if method.__name__ != "adhoc":
+            if method.__name__ != "adhoc" and method.__name__ != "runHooge": 
                 preds = method(rec, **params)
             else: preds = rec
 
             if method.__name__ == "gazeNet":
                 adjusted_labels = preds[1] 
                 preds = preds[0]
-            if method.__name__ == "ACEDNV" or method.__name__ == "adhoc":
+            if method.__name__ in {"ACEDNV", "adhoc", "runHooge"}:
                 adjusted_labels = labels[i]
             
             f1s_mi, f1e_mi = scorer(preds, adjusted_labels, printBool=False)   #f1 scores for this recording on this threshold
@@ -140,3 +145,14 @@ def ashScore(gt, pred):
 
     print(ranges)
 
+
+
+
+def cacheLoadedData(data):
+    
+    recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
+
+    for idx, array in enumerate(data):
+        file_path = os.path.join("degs_cached", recs[idx]+".csv")
+        np.savetxt(file_path, array, delimiter=",", fmt="%.5f")  # Save with 5 decimal precision
+        print(f"Saved: {file_path}")
