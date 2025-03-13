@@ -95,6 +95,8 @@ def evaluate(methodList, data, labels):
                 preds = preds[0]
             if method.__name__ in {"ACEDNV", "adhoc", "runHooge"}:
                 adjusted_labels = labels[i]
+            if method.__name__ == "ACEDNV":
+                preds = np.array(preds)
             
             f1s_mi, f1e_mi = scorer(preds, adjusted_labels, printBool=False)   #f1 scores for this recording on this threshold
             ash_score_mi = ashScore(preds, adjusted_labels)
@@ -119,7 +121,7 @@ def getRanges(arr):
 
 
 
-def ashScore(gt, pred):
+def ashScore(pred, gt):
     
     # get the gt->pred matching score
     ranges = getRanges(gt)
@@ -139,7 +141,7 @@ def ashScore(gt, pred):
         n_i = event[1] - event[0] + 1
         innerScore += TP_i/n_i
 
-    Pred_match_score = TP_i/(2*ranges.shape[0])
+    Pred_match_score = innerScore/(2*ranges.shape[0])
 
     return Pred_match_score + GT_match_score
 

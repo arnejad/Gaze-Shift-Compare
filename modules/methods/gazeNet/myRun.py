@@ -93,60 +93,6 @@ kwargs = {
 etdata_gt = ETData()
 etdata_pr = ETData()
 
-# FILES = []
-# for _root, _dir, _files in os.walk('%s/%s'%(args.root, args.dataset)):
-#     FILES.extend(['%s/%s' % (_root, _file)
-#                   for _file in fnmatch.filter(_files, "*.npy")])
-
-# df = pd.DataFrame(np.random.randint(0,100,size=(20, 3)), columns=['x','y','evt'])
-# x_values = np.random.randint(0, 101, size=200)
-# y_values = np.random.randint(0, 101, size=200)
-# evt_values = np.random.randint(1, 4, size=200)
-# df = pd.DataFrame({
-#     'x': x_values,
-#     'y': y_values,
-#     'evt': evt_values
-# })
-# X_test_all = [df, df]
-# #test separate files
-# for X_test in tqdm(X_test_all):
-    
-#     #load data
- 
-#     _status = np.isnan(X_test['x']) | \
-#               np.isnan(X_test['y']) | \
-#               ~np.in1d(X_test['evt'], config['events'])
-#     X_test['status'] = ~_status
-#     test_dataset = EMDataset(config = config, gaze_data = [X_test])
-#     n_samples = len(test_dataset)
-#     if n_samples<1:
-#         continue
-#     test_loader = GazeDataLoader(test_dataset, batch_size=config['batch_size'],
-#                                  num_workers=1,
-#                                  shuffle=False)
-#     #predict
-#     _gt, _pr, pr_raw = run_infer(model, n_samples, test_loader, **kwargs)
-
-#     #glue back the predictions
-#     _data_pr = copy.deepcopy(test_dataset.data)
-#     for _d, _pred in zip(_data_pr, pr_raw):
-#         _d['evt'] = 0
-#         _d['evt'][1:] = np.argmax(_pred, axis=1)+1
-#     _data_pr = pd.concat([pd.DataFrame(_d) for _d in _data_pr]).reset_index(drop=True)
-#     _data = pd.DataFrame(X_test)
-#     _data = _data.merge(_data_pr, on='t', suffixes=('', '_pred'), how='left')
-#     _data['evt'] = _data['evt_pred'].replace({np.nan:0})
-
-#     #save
-#     etdata_pr.load(_data[['t', 'x', 'y', 'status', 'evt']].values, **{'source':'np_array'})
-
-#     sdir = fdir.replace(args.dataset, '%s_gazeNet'%args.dataset)
-#     mkpath(sdir)
-#     spath = '%s/%s'%(sdir, fname)
-#     etdata_pr.save(spath)
-#     etdata_pr.plot(show=False, save=True, spath='%s'%spath)
-
-
 def gazeNet(X_test):
     
     test_dataset = EMDataset(config = config, gaze_data = X_test)
@@ -156,4 +102,17 @@ def gazeNet(X_test):
     n_samples = len(test_dataset)
     # _gt, _pr, pr_raw = run_infer(model, n_samples, test_loader, **kwargs)
     pr = run_infer(model, n_samples, test_loader, **kwargs)
+
+    # pr[0] = onlySaccades(pr[0])
+    # pr[1] = onlySaccades(pr[1])
+
+    pr[0][np.where(np.isin(pr[0], np.array([1, 3, 4, 5, 6])))] = 0
+    pr[0][np.where(pr[0]==2)] = 1
+
+    pr[1][np.where(np.isin(pr[1], np.array([1, 3, 4, 5, 6])))] = 0
+    pr[1][np.where(pr[1]==2)] = 1
+
+
     return pr
+
+
