@@ -106,8 +106,9 @@ def gazeNet(X_test):
     # pr[0] = onlySaccades(pr[0])
     # pr[1] = onlySaccades(pr[1])
 
+    # the second class is saccade (1) but it is given out as (1+1=2)
     pr[0][np.where(np.isin(pr[0], np.array([1, 3, 4, 5, 6])))] = 0
-    pr[0][np.where(pr[0]==2)] = 1
+    pr[0][np.where(pr[0]==2)] = 1  
 
     pr[1][np.where(np.isin(pr[1], np.array([1, 3, 4, 5, 6])))] = 0
     pr[1][np.where(pr[1]==2)] = 1
