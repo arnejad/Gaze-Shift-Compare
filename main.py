@@ -1,7 +1,6 @@
 import numpy as np
 import os
 import sys
-import subprocess
 
 from modules.dataloader import dataloader, converDataToGazeNet
 
@@ -19,7 +18,7 @@ from modules.methods.ACEDNV.modules.scorer import score
 from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
 from modules.methods.gazeNet.myRun import gazeNet
-from modules.methods.remodnav.myRun import pred as remodnav 
+# from modules.methods.remodnav.myRun import pred as remodnav 
 # from modules.methods.I2MC.I2MC_api import run as i2mc
 from modules.methods.ACEDNV.modules.eventDetector import ACEDNV
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader

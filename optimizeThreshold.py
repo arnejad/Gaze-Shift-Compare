@@ -1,3 +1,5 @@
+# This script runs IVT and IDT algs to find the best-fitting threshold for them
+# The used threhold in main.py are extracted based on executing this script
 import numpy as np
 from modules.methods.IVT import ivt
 from modules.methods.IDT import idt

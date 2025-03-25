@@ -52,9 +52,11 @@ def _load_PI(remove_blinks=False, degConv=False, incTimes=False):
         gazeTimes = tempRead[:,0]
         gazes = tempRead[:,[1,2]]
 
+
         if degConv:
-            gazes = np.column_stack((gazeTimes, pix2degConv(gazes)))
-        elif incTimes:
+            gazes = pix2degConv(gazes)
+        
+        if incTimes:
             gazes = np.column_stack((gazeTimes, gazes))
 
         labels = np.array(np.genfromtxt(join(directory, r+"_manual coding"), delimiter=' ')[:,1], dtype=int)
