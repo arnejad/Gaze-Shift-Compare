@@ -46,7 +46,7 @@ def drawProgress(sample_scores, event_scores, plotted_threshs, alg_name, fig=Non
 
     ax.plot(plotted_threshs, sample_means, 'o-', color='blue', label='Sample-level')
     ax.plot(plotted_threshs, event_means, 'o-', color='red', label='Event-level')
-    ax.set_title("Accuracies vs Threshold (Multiple Measurements)")
+    ax.set_title("Accuracies vs Threshold")
     ax.set_xlabel("Threshold")
     ax.set_ylabel("F1-Score")
     ax.legend()

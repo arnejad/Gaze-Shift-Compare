@@ -28,10 +28,13 @@ from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
 from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runHooge
-from config import INP_DIR
+from config import INP_DIR, LABELER
 
 
 # START UNDER DEV.
+
+
+
 
 ### Main body of execution
 # Note: Different methods have different dataloaders or different settings for reading
@@ -40,7 +43,7 @@ from config import INP_DIR
 
 
 #IDT
-data, labels = dataloader(remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
+data, labels = dataloader(LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
 methods = [
     (idt, {"threshold": 15}),
     # (ivt, {"v_threshold": 1.2})
@@ -63,7 +66,7 @@ print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashsco
 
 # gazeNet execution
 # Warning: SCORES ARE ABOUT 1%
-data, labels = dataloader(remove_blinks=False, degConv=False)
+data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
 df = converDataToGazeNet(data, labels, dummy=False)
 f1s, f1e, ashscore = evaluate([(gazeNet, {})], df, labels)
 print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
@@ -82,7 +85,7 @@ print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashsco
 
 
 # ACE-DNV
-ds_x, ds_y = aceReader()       #ACE-DNV's dataloader
+ds_x, ds_y = aceReader(LABELER)       #ACE-DNV's dataloader
 f1s, f1e, ashscore = evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
 print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
@@ -93,14 +96,14 @@ print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashsco
 oemc_args = OEMC_ArgsReplicator()
 oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
                                       stride=oemc_args.strides,frequency=250)
-oemc_pproc.process_folder(INP_DIR, 'cached/VU')
+oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
 oemcSimulator = OEMC_OnlineSimulator(oemc_args)
 preds, gt = oemcSimulator.simulate(1)
 f1_s, f1_e, ashscore = score(preds, gt, printBool=False)
 print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 # Hooge algorithm
-data, labels = dataloader(remove_blinks=True, degConv=False, incTimes=True)    
+data, labels = dataloader(LABELER, remove_blinks=True, degConv=False, incTimes=True)    
 preds = runHooge(data)
 f1s, f1e, ashscore = evaluate([(runHooge, {})], preds, labels)
 print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))

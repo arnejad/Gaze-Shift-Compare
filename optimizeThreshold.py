@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 
 plt.ion()
 
+#optimize on one sample from both labelers
+singleSampleBothLabler = True
 
 def optimize_threshold(
     func_to_optimize,  # the function whose score you want to optimize
@@ -47,15 +49,26 @@ def optimize_threshold(
     return best_threshold, best_score
 
 
+if singleSampleBothLabler:
+    data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=False)
+    data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=False)
 
-data, labels = dataloader(remove_blinks=True, degConv=False)
+    data_AG, labels_AG = dataloader("AG", remove_blinks=True, degConv=False)
+    data_AG, labels_AG = dataloader("AG", remove_blinks=True, degConv=False)
+
+
+    data = [data_EB[0], data_AG[0]]
+    labels = [labels_EB[0], labels_AG[0]]
+else:
+    data, labels = dataloader("EB", remove_blinks=True, degConv=False)
+
 
 # best_thr_2, best_score_2 = optimize_threshold(idt, np.arange(0, 60, 1), data, [sub_list[1:-1] for sub_list in labels], "idt")
 # print("idt 2 best:", best_thr_2, best_score_2)
 
 
 best_thr_1, best_score_1 = optimize_threshold(ivt, np.arange(0, 7, 0.5), data, [sub_list[:-1] for sub_list in labels], "ivt")
-# best_thr_1, best_score_1 = optimize_threshold(ivt, np.arange(1, 2, 0.5), data, [sub_list[:-1] for sub_list in labels], "ivt")
+best_thr_1, best_score_1 = optimize_threshold(ivt, np.arange(1, 2, 0.5), data, [sub_list[:-1] for sub_list in labels], "ivt")
 
 print("ivt 1 best:", best_thr_1, best_score_1)
 

@@ -20,7 +20,7 @@ class Preprocessor():
         self.train_Y, self.test_Y = np.empty((0,)), np.empty((0,))
 
 
-    def process_folder(self, base_path, out_path):
+    def process_folder(self, base_path, out_path, labeler):
         '''
         Extract features from a folder containing the
         dataset. The processed files are stored in an
@@ -36,7 +36,7 @@ class Preprocessor():
                 os.makedirs(outpath)
             outfile = os.path.join(out_path, r, r)
             print(f'>>> extracting features from {src}...')
-            data = self.load_file(os.path.join(base_path, r))
+            data = self.load_file(os.path.join(base_path, r), labeler)
             # data[:,1:3] = pix2degConv(data[:,1:3])
             data[:,1] = data[:,1]/VIDEO_SIZE[0] #normalize (added to this version for our data)
             data[:,2] = data[:,2]/VIDEO_SIZE[1]
@@ -45,7 +45,7 @@ class Preprocessor():
             self.save_processed_file(X, Y, outfile)
 
 
-    def process_folder_parallel(self, base_path, out_path, workers):
+    def process_folder_parallel(self, base_path, out_path, workers, labeler):
         srcs, outfiles = [], []
         out_path = self.append_options(out_path)
         for dirpath, dirnames, files in os.walk(base_path):
@@ -59,12 +59,12 @@ class Preprocessor():
                 outfile = os.path.join(out_path, patt[0], f[:-4])
                 outfiles.append(outfile)
         with ProcessPoolExecutor(max_workers=workers) as executor:
-            executor.map(self._process_one, srcs, outfiles, timeout=90)
+            executor.map(self._process_one, srcs, outfiles, labeler, timeout=90)
 
     
-    def _process_one(self, src, outfile):
+    def _process_one(self, src, outfile, labeler):
         print(f'>>> extracting features from {src}...')
-        data = self.load_file(src)
+        data = self.load_file(src, labeler)
         X,Y = self.process_data(data)
         self.save_processed_file(X, Y, outfile)
 
@@ -219,7 +219,7 @@ class Preprocessor():
         return outpath
 
 
-    def load_file(self, folder_path):
+    def load_file(self, folder_path, labeler):
         '''
         Read a single file and convert it to DataFrame
         '''
@@ -230,7 +230,7 @@ class Preprocessor():
         data = np.delete(data, 3, 1)
         match = re.search(r'/(p\d+)(?:/|$)', folder_path)
         if match: participant = match.group(1)
-        labels = np.array(np.genfromtxt(os.path.join(folder_path, participant+"_manual coding"), delimiter=' ')[:,1], dtype=int)
+        labels = np.array(np.genfromtxt(os.path.join(folder_path, participant+"_manual coding_"+labeler), delimiter=' ')[:,1], dtype=int)
         return np.column_stack((data, labels))
 
 

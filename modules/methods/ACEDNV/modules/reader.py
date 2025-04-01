@@ -4,7 +4,8 @@ import numpy as np
 import scipy.io
 from modules.timeMatcher import timeMatcher
 from modules.PatchSimNet import pred_all as patchNet_predAll
-from modules.methods.ACEDNV.config import INP_DIR, OUT_DIR, VIDEO_SIZE, CLOUD_FORMAT, DATASET, ACTIVITY_NUM, ACIVITY_NAMES, LABELER
+from modules.methods.ACEDNV.config import INP_DIR, OUT_DIR, VIDEO_SIZE, CLOUD_FORMAT, DATASET, ACTIVITY_NUM, ACIVITY_NAMES
+
 from modules.preprocess import preprocessor
 
 def zScore_norm(featSet):
@@ -17,7 +18,7 @@ def zScore_norm(featSet):
     return featSet
 
 
-def readDataset():
+def readDataset(labeler):
 
     if DATASET == "VisioRUG":
 
@@ -77,7 +78,7 @@ def readDataset():
 
             T = tempRead[:, 0]
 
-            labels = np.array(np.genfromtxt(join(directory, r+"_manual coding"), delimiter=' ')[:,1], dtype=int)
+            labels = np.array(np.genfromtxt(join(directory, r+"_manual coding_"+labeler), delimiter=' ')[:,1], dtype=int)
             # check if imu data exists.
             gazeMatch, TMatch, frames, lblMatch = timeMatcher(timestamps, gazes, labels)
 

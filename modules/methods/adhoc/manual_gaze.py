@@ -30,7 +30,7 @@ def draw_for_coding(main_app,foldername,options):
     for i in range(len(options)):
         buttons.append(PushButton(coding_app,text=options[i],command=selecting_this,args=[i],align='top',width='fill',height='fill'))
         buttons[-1].text_color=colours[i]
-    filename=f'{foldername}/manual coding'
+    filename=f'{foldername}/manual coding_'
     if os.path.exists(filename):
         gazeCoding=np.loadtxt(filename)
     else:

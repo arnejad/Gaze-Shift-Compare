@@ -10,7 +10,7 @@ from config import MATLAB_PATH, INP_DIR
 def runHooge(data):
 
     print("Executing Hooget Fixation Detection...")
-    # cacheLoadedData(data)
+    cacheLoadedData(data)
     env = os.environ.copy()
     env["MATLAB_ARGS"] = "/home/ash/projects/Wild-Saccade-Detection-Comparison/degs_cached"
     script_directory = "modules/methods/Hooge/"

@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 from modules.car2spher import calc as pix2degConv
 
-from config import INP_DIR, CLOUD_FORMAT, VIDEO_SIZE, DATASET
+from config import INP_DIR, CLOUD_FORMAT, VIDEO_SIZE, DATASET, LABELER
 
 
 
-def _load_PI(remove_blinks=False, degConv=False, incTimes=False):
+def _load_PI(labeler, remove_blinks=False, degConv=False, incTimes=False):
     # list the folders in the directory
     recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
     ds_x = []
@@ -59,7 +59,7 @@ def _load_PI(remove_blinks=False, degConv=False, incTimes=False):
         if incTimes:
             gazes = np.column_stack((gazeTimes, gazes))
 
-        labels = np.array(np.genfromtxt(join(directory, r+"_manual coding"), delimiter=' ')[:,1], dtype=int)
+        labels = np.array(np.genfromtxt(join(directory, r+"_manual coding_"+labeler), delimiter=' ')[:,1], dtype=int)
 
         # T = tempRead[1:, 0] #extract the time points
 
@@ -89,9 +89,9 @@ def _load_GiW():
     print("TODO")
     # to work on
 
-def dataloader(remove_blinks, degConv=False, incTimes=False):
+def dataloader(labeler,remove_blinks=True, degConv=False, incTimes=False):
     if DATASET == "PI":
-        return _load_PI(remove_blinks, degConv, incTimes)
+        return _load_PI(labeler, remove_blinks, degConv, incTimes)
     elif DATASET == "GiW":
         return _load_GiW()
     

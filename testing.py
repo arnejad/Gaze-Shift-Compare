@@ -13,14 +13,14 @@ from modules.methods.ACEDNV.modules.scorer import score
 
 
 
-from config import INP_DIR
+from config import INP_DIR, LABELER
 
 
 
 oemc_args = OEMC_ArgsReplicator()
 oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
                                       stride=oemc_args.strides,frequency=250)
-oemc_pproc.process_folder(INP_DIR, 'cached/VU')
+oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
 oemcSimulator = OEMC_OnlineSimulator(oemc_args)
 preds, gt = oemcSimulator.simulate(1)
 f1_s, f1_e = score(preds, gt, printBool=False)

@@ -1,6 +1,6 @@
 from os import listdir, path
 from os.path import isfile, join, isdir
-from config import INP_DIR
+from config import INP_DIR, LABELER
 import numpy as np
 
 
@@ -16,7 +16,7 @@ def adhoc():
 
         preds = np.array(np.genfromtxt(join(directory, r+"_gaze_with_saccades.txt"), delimiter=' ')[:,3], dtype=int)
         
-        labels = np.array(np.genfromtxt(join(directory, r+"_manual coding"), delimiter=' ')[:,1], dtype=int)
+        labels = np.array(np.genfromtxt(join(directory, r+"_manual coding_"+LABELER), delimiter=' ')[:,1], dtype=int)
 
        
         rmidcs_lbls = np.where(labels == -1) # remove blinks detected in ground truth
