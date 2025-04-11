@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
 # function extracted from  https://github.com/elmadjian/OEMC 
 
 def count_event(preds, gt):   
@@ -27,7 +28,8 @@ def count_event(preds, gt):
 
 
 def print_results(sample_preds, sample_gt, event_preds, event_gt, printBool=True):
-    target_names = ["Fixation", "Gaze Pursuit", "Gaze Shift", "Gaze Following"]
+    target_names = ["rest", "Gaze-Shift"]
+    # target_names = ["Fixation", "Gaze Pursuit", "Gaze Shift", "Gaze Following"]
     # target_names = ["Fixation", "Gaze Pursuit", "Gaze Shift"]
     # target_names = [ "Gaze Shift", "Gaze Following"]
 
@@ -36,27 +38,38 @@ def print_results(sample_preds, sample_gt, event_preds, event_gt, printBool=True
         print(metrics.classification_report(sample_gt, sample_preds, digits=4))
     f1_s = metrics.classification_report(sample_gt, sample_preds, digits=4, output_dict=True)
     # metrics.ConfusionMatrixDisplay.from_predictions(sample_gt, 
-                            # sample_preds, display_labels=target_names, 
-                            # cmap='Purples', normalize='pred', values_format='.2f')
+    #                         sample_preds, display_labels=target_names, 
+    #                         cmap='Purples', normalize='pred', values_format='.2f')
+    cm_s = metrics.confusion_matrix(sample_gt, sample_preds)
+    # plt.show()  # Add this
 
     if printBool:
         print('EVENT-LEVEL metrics\n===================')
         print(metrics.classification_report(event_gt, event_preds, digits=4))
     # metrics.ConfusionMatrixDisplay.from_predictions(event_gt,
-                            # event_preds, display_labels=target_names, 
-                            # normalize='pred', cmap='Greens', values_format='.2f')
+    #                         event_preds, display_labels=target_names, 
+    #                         normalize='pred', cmap='Greens', values_format='.2f')
+    # plt.show()  # Add this
+
+    cm_e = metrics.confusion_matrix(event_gt, event_preds)
+    # print("sample-level:")
+    
+    # print("TP:", TP)
+    # print("FP:", FP)
+    # print("FN:", FN)
+
     # plt.show()
     f1_e = metrics.classification_report(event_gt, event_preds, digits=4, output_dict=True)
 
     # f1_e = [f1_se['0']['f1-score'], f1_se['1']['f1-score'], f1_se['2']['f1-score'], f1_se['3']['f1-score']]
     # f1_s = [f1_ss['0']['f1-score'], f1_ss['1']['f1-score'], f1_ss['2']['f1-score'], f1_ss['3']['f1-score']]
 
-    return f1_s["1"]["f1-score"], f1_e["1"]["f1-score"]
+    return f1_s["1"]["f1-score"], f1_e["1"]["f1-score"], cm_s, cm_e
 
 def score(sample_preds, sample_gt, printBool):
     event_preds, event_gt = count_event(sample_preds, sample_gt)
-    f1_s, f1_e = print_results(sample_preds, sample_gt, event_preds, event_gt, printBool)
-    return f1_s, f1_e
+    f1_s, f1_e, cm_s, cm_e = print_results(sample_preds, sample_gt, event_preds, event_gt, printBool)
+    return f1_s, f1_e, cm_s, cm_e
 
 
 

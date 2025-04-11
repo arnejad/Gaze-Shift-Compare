@@ -22,34 +22,34 @@ from modules.methods.gazeNet.myRun import gazeNet
 # from modules.methods.I2MC.I2MC_api import run as i2mc
 from modules.methods.ACEDNV.modules.eventDetector import ACEDNV
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
-from modules.methods.adhoc.resReader import adhoc as adhocPreCompPred
+from modules.methods.ranking.resReader import ranking as rankingPreCompPred
 from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
 from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
 from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.utils import evaluate
-from modules.methods.Hooge.run import runHooge
+from modules.methods.Hooge.run import runMovingWindow
 from config import INP_DIR, LABELER
 
 
 # START UNDER DEV.
-
-
+adhoc_res, lbls = rankingPreCompPred(onlyEM=False)
+evaluate([(rankingPreCompPred, {})], adhoc_res, lbls)
 
 
 ### Main body of execution
 # Note: Different methods have different dataloaders or different settings for reading
 
-# loading the dataset
+# loading the dataset 
 
 
 #IDT
 data, labels = dataloader(LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
 methods = [
-    (idt, {"threshold": 15}),
+    (idt, {"threshold": 22}),
     # (ivt, {"v_threshold": 1.2})
 ]
-f1s, f1e, ashscore = evaluate(methods, data, labels)
-print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+evaluate(methods, data, labels)
+# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 
 #IVT
@@ -57,8 +57,8 @@ methods = [
     # (idt, {"threshold": 15}),
     (ivt, {"v_threshold": 1.2})
 ]
-f1s, f1e, ashscore = evaluate(methods, data, labels)
-print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+evaluate(methods, data, labels)
+# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 # IM2C algorithm execution
 # i2mc_res = i2mc(data[0])
@@ -68,8 +68,8 @@ print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashsco
 # Warning: SCORES ARE ABOUT 1%
 data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
 df = converDataToGazeNet(data, labels, dummy=False)
-f1s, f1e, ashscore = evaluate([(gazeNet, {})], df, labels)
-print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+evaluate([(gazeNet, {})], df, labels)
+# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 # RemodNAV method
 # df = df.drop(['evt', 'status'], axis=1)
@@ -79,15 +79,24 @@ print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashsco
 
 # Adhoc Alg
 # TODO: investigate the mismatch why blinks are slightly different in adhoc results and manual labels
-adhoc_res, lbls = adhocPreCompPred()
-f1s, f1e, ashscore = evaluate([(adhocPreCompPred, {})], adhoc_res, lbls)
-print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+adhoc_res, lbls = rankingPreCompPred()
+evaluate([(rankingPreCompPred, {})], adhoc_res, lbls)
+# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 
 # ACE-DNV
 ds_x, ds_y = aceReader(LABELER)       #ACE-DNV's dataloader
-f1s, f1e, ashscore = evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
-print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
+# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+
+
+
+# Moving Window
+data, labels = dataloader(LABELER, remove_blinks=True, degConv=False, incTimes=True)    
+preds = runMovingWindow(data, 6000, 3.5)
+evaluate([(runMovingWindow, {})], preds, labels)
+# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+
 
 # OEMC
 
@@ -102,11 +111,6 @@ preds, gt = oemcSimulator.simulate(1)
 f1_s, f1_e, ashscore = score(preds, gt, printBool=False)
 print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
-# Hooge algorithm
-data, labels = dataloader(LABELER, remove_blinks=True, degConv=False, incTimes=True)    
-preds = runHooge(data)
-f1s, f1e, ashscore = evaluate([(runHooge, {})], preds, labels)
-print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 
 

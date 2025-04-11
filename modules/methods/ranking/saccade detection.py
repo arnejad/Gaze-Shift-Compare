@@ -10,6 +10,8 @@ scene_height_pixels=1080
 scene_width_deg=82
 scene_height_deg=82
 
+considerImagesAsWellAsEyeMovements=False
+
 # some choices (not optimized, just guessed)
 minimalAmplitudeDeg=1 # a saccade must have an amplitude of at least 1 deg
 minGapBetweenSaccades=0.05 # closer together than 50 ms is not a new saccade, so one should be removed or they should be combined
@@ -33,7 +35,10 @@ def analyse_saccades(folder):
             p_image.append(0)
     gazeData=np.column_stack((gazeData,p_image))
     # combine to obtain probability of saccade
-    prob=np.sqrt(gazeData[:,-2]*gazeData[:,-1])
+    if considerImagesAsWellAsEyeMovements:
+        prob=np.sqrt(gazeData[:,-2]*gazeData[:,-1])
+    else:
+        prob=gazeData[:,-2]
     # split into likely times and other
     prob[prob>0.5]=1
     prob[prob<0.6]=0

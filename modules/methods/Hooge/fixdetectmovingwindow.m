@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function fmark = fixdetectmovingwindow(datx,daty,dattime) 
+function fmark = fixdetectmovingwindow(datx,daty,dattime, winLen, lmd) 
 % Note from Ash: 
 % NOTE: lamdba does not function exactly as you might think. Lamdba is used
 % to iteratively remove high velocities (mean + lamdba * std). Final
@@ -34,8 +34,8 @@ dat.time = dattime;
 f.thr           = 5000;     % set very high
 f.counter       = 200;
 f.minfix        = 0.060;       % ms
-f.lambda        = 2.5;      % lambda rel treshhold in sd's
-f.windowlength  = 8000;     % ms moving window average
+f.lambda        = lmd;      % lambda rel treshhold in sd's
+f.windowlength  = winLen;     % ms moving window average
 f.sf            = 200;      % sampling freq
 f.windowsize    = round(f.windowlength./(1000/f.sf));
  

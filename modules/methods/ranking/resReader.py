@@ -4,7 +4,7 @@ from config import INP_DIR, LABELER
 import numpy as np
 
 
-def adhoc():
+def ranking(onlyEM=False):
     recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
     
     predsAll = []
@@ -14,7 +14,10 @@ def adhoc():
     for r in recs:
         directory = join(INP_DIR, r)
 
-        preds = np.array(np.genfromtxt(join(directory, r+"_gaze_with_saccades.txt"), delimiter=' ')[:,3], dtype=int)
+        if onlyEM:
+            preds = np.array(np.genfromtxt(join(directory, r+"_gaze_with_saccades_onlyEM.txt"), delimiter=' ')[:,3], dtype=int)
+        else:
+            preds = np.array(np.genfromtxt(join(directory, r+"_gaze_with_saccades.txt"), delimiter=' ')[:,3], dtype=int)
         
         labels = np.array(np.genfromtxt(join(directory, r+"_manual coding_"+LABELER), delimiter=' ')[:,1], dtype=int)
 
