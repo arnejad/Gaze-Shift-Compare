@@ -80,12 +80,12 @@ def confMat_visualizer(cm_s, cm_e, methodName):
 
     # Sample-level confusion matrix
     disp_sample = ConfusionMatrixDisplay(confusion_matrix=cm_s, display_labels=labels)
-    disp_sample.plot(ax=axes[0], cmap='Purples', values_format='.0f', colorbar=False)
+    disp_sample.plot(ax=axes[0], cmap='Purples', values_format='.2f', colorbar=False)
     axes[0].set_title("Sample-level Confusion Matrix")
 
     # Event-level confusion matrix
     disp_event = ConfusionMatrixDisplay(confusion_matrix=cm_e, display_labels=labels)
-    disp_event.plot(ax=axes[1], cmap='Greens', values_format='.0f', colorbar=False)
+    disp_event.plot(ax=axes[1], cmap='Greens', values_format='.2f', colorbar=False)
     axes[1].set_title("Event-level Confusion Matrix")
 
     for text in disp_sample.text_.ravel():
@@ -118,32 +118,32 @@ def evaluate(methodList, data, labels):
             if method.__name__ == "ivt":
                 adjusted_labels = labels[i][:-1]
             if method.__name__ == "idt":
-                adjusted_labels = labels[i][1:-1] 
-            
-            if method.__name__ != "ranking" and method.__name__ != "runMovingWindow": 
+                adjusted_labels = labels[i][1:-1]        
+            # if method.__name__ != "ranking" and method.__name__ != "runMovingWindow" and method.__name__ != "runOEMC": 
+            if method.__name__ not in ["ranking", "runMovingWindow", "runOEMC"]:
                 preds = method(rec, **params)
             else: preds = rec
 
             if method.__name__ == "gazeNet":
                 adjusted_labels = preds[1] 
                 preds = preds[0]
-            if method.__name__ in {"ACEDNV", "ranking", "runMovingWindow"}:
+            if method.__name__ in {"ACEDNV", "ranking", "runMovingWindow", "runOEMC"}:
                 adjusted_labels = labels[i]
             if method.__name__ == "ACEDNV":
                 preds = np.array(preds)
             
             f1s_mi, f1e_mi, cm_s, cm_e = scorer(preds, adjusted_labels, printBool=False)   #f1 scores for this recording on this threshold
-            ash_score_mi = ashScore(preds, adjusted_labels)
+            # ash_score_mi = ashScore(preds, adjusted_labels)
             f1s_m.append(f1s_mi)
             f1e_m.append(f1e_mi)
-            ash_scores_m.append(ash_score_mi)
+            # ash_scores_m.append(ash_score_mi)
             cm_s_all = cm_s_all+cm_s
             cm_e_all = cm_e_all+cm_e
         f1s_all.append(f1s_m)
         f1e_all.append(f1e_m)
-        cm_s_avg = np.array(cm_s_all)/i
-        cm_e_avg = np.array(cm_e_all)/i
-        ash_scores_all.append(ash_scores_m)
+        cm_s_avg = np.array(cm_s_all)/(i+1)
+        cm_e_avg = np.array(cm_e_all)/(i+1)
+        # ash_scores_all.append(ash_scores_m)
 
     # return f1s_all, f1e_all, ash_scores_all, cm_s_avg, cm_e_avg
     print("Method: " + method.__name__)

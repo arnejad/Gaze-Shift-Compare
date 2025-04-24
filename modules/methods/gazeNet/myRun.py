@@ -54,7 +54,7 @@ if dev:
     sys.argv = [sys.argv[0], ROOT, DATASET]
 # args = get_arguments()
 
-MODEL_DIR="/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/model_final"
+MODEL_DIR="/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/model_final/models"
 MODEL_NAME = "gazeNET_0004_00003750"
 
 logdir =  os.path.join('logdir', MODEL_DIR)

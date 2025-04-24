@@ -160,3 +160,9 @@ def converDataToGazeNet(data, labels, dummy=False):
     # df_all = [df]
 
     return all_data
+
+
+def listRecNames():
+    recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
+
+    return recs

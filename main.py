@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys
 
-from modules.dataloader import dataloader, converDataToGazeNet
+from modules.dataloader import dataloader, converDataToGazeNet, listRecNames
 
 
 # insert methods' submodules to be callable inside our code
@@ -26,15 +26,15 @@ from modules.methods.ranking.resReader import ranking as rankingPreCompPred
 from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
 from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
 from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
+from modules.methods.OEMC.myRun import runOEMC
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
 from config import INP_DIR, LABELER
 
 
 # START UNDER DEV.
-adhoc_res, lbls = rankingPreCompPred(onlyEM=False)
-evaluate([(rankingPreCompPred, {})], adhoc_res, lbls)
-
+preds, gts = runOEMC()
+evaluate([(runOEMC, {})], preds, gts)
 
 ### Main body of execution
 # Note: Different methods have different dataloaders or different settings for reading
@@ -80,7 +80,7 @@ evaluate([(gazeNet, {})], df, labels)
 # Adhoc Alg
 # TODO: investigate the mismatch why blinks are slightly different in adhoc results and manual labels
 adhoc_res, lbls = rankingPreCompPred()
-evaluate([(rankingPreCompPred, {})], adhoc_res, lbls)
+evaluate([(rankingPreCompPred, {"onlyEM": True})], adhoc_res, lbls)
 # print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 
@@ -102,15 +102,17 @@ evaluate([(runMovingWindow, {})], preds, labels)
 
 # update OEMC to predict participants individually
 # Warning: SCORES ARE ABOUT 0%
-oemc_args = OEMC_ArgsReplicator()
-oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
-                                      stride=oemc_args.strides,frequency=250)
-oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
-oemcSimulator = OEMC_OnlineSimulator(oemc_args)
-preds, gt = oemcSimulator.simulate(1)
-f1_s, f1_e, ashscore = score(preds, gt, printBool=False)
-print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+# oemc_args = OEMC_ArgsReplicator()
+# oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
+#                                       stride=oemc_args.strides,frequency=250)
+# oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
+# oemcSimulator = OEMC_OnlineSimulator(oemc_args)
+# preds, gt = oemcSimulator.simulate(1)
+# f1_s, f1_e, ashscore = score(preds, gt, printBool=False)
+# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
+preds, gts = runOEMC()
+evaluate([(runOEMC, {})], preds, gts)
 
 
 

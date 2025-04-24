@@ -37,6 +37,7 @@ def load(model, model_dir, config, model_name=None):
     logdir = "logdir/%s/models" % model_dir
 
     fpath_model = "%s/%s" % (logdir, model_name)
+    fpath_model = "%s/%s" % (model_dir, model_name)
     print (fpath_model)
     if os.path.exists(fpath_model) and (model_name is not None):
         print("Loading model: %s" % fpath_model)
@@ -45,13 +46,19 @@ def load(model, model_dir, config, model_name=None):
         epoch = package['epoch']+1 if not(package['epoch'] == 'N/A') else 1
         #edit variable names for loading in cpu
         #if not(config["cuda"]):
-        for k in package['state_dict'].keys():
-            package['state_dict'][k.replace('module.', '', 1)] = package['state_dict'].pop(k)
+        # for k in package['state_dict'].keys():
+        #     package['state_dict'][k.replace('module.', '', 1)] = package['state_dict'].pop(k)
+
+        for k in list(package['state_dict'].keys()):
+            new_key = k.replace('module.', '', 1)
+            package['state_dict'][new_key] = package['state_dict'].pop(k)
 
         state_dict = dict()
         for k in model.state_dict().keys():
-            if package['state_dict'].has_key(k):
+            if k in package['state_dict']:
                 state_dict[k] = package['state_dict'][k]
+
+
         model_state = model.state_dict()
         model_state.update(state_dict)
         model.load_state_dict(model_state)

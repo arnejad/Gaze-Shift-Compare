@@ -45,7 +45,8 @@ def produceArgs():
     argparser.add_argument('-f',
                            '--folds',
                            required=False,
-                           default=10,
+                           default=1,
+                        #    default=10,
                            type=int)
     argparser.add_argument('-s',
                            '--strides',

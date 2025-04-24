@@ -145,19 +145,21 @@ class Preprocessor():
         return train_X, train_Y, test_X, test_Y
 
     
-    def load_data_k_fold(self, base_path, folds=5):
+    def load_data_k_fold(self, base_path, rec, folds=5):
         '''
         Generator that returns a different split training/test
         at each call based on the number of total folds
         '''
 
         for k in range(folds):
-            print(f'>>> Loading fold {k+1}...')
+            # print(f'>>> Loading fold {k+1}...')
             X_base, Y_base = None, None
             
             # following lines adapted to our dataset
             recs = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
             
+            recs = [rec]
+
             for r in recs:
                 src = os.path.join(base_path, r, (r+".npz"))
                 data = np.load(src, mmap_mode='r')

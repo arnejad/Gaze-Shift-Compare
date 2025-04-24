@@ -1,7 +1,7 @@
 # INP_DIR = "/home/ash/projects/video_for_Ashkan/exports"
 INP_DIR = '/media/ash/Expansion/data/Saccade-Detection-Methods'
 DATASET = "PI"              #choose self collected data from Pupil Ivisible by "PI", and gaze-in-wild dataset by "GiW"
-LABELER = "EB"              # choose betweem "EB" and "AG"
+LABELER = "AG"              # choose betweem "EB" and "AG"
 
 CLOUD_FORMAT = False
 VIDEO_SIZE = [1080, 1088]   # [width, height]

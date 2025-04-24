@@ -24,9 +24,9 @@ class OnlineSimulator():
         torch.set_printoptions(sci_mode=False)
 
 
-    def simulate(self, n_folds=None):
+    def simulate(self, rec, n_folds=None):
         fold = self.pr.load_data_k_fold('cached/'+self.pr.append_options(
-                                        self.args.dataset), 
+                                        self.args.dataset), rec, 
                                         folds=self.args.folds)
         pred_all = []
         gt_all = []
@@ -48,10 +48,10 @@ class OnlineSimulator():
                     gt_all.append(gt)       #addded to save the results
                     self._update_conf_matrix(pred, gt)
                     self._show_progress(i, teX, times)
-            print(f'\nFOLD {fold_i+1}\n------------------')
+            # print(f'\nFOLD {fold_i+1}\n------------------')
             #self.scorer._f_score_calc(self.conf_matrix, self.conf_total)
             self.times += times
-            self._show_times(self.times)
+            # self._show_times(self.times)
         return pred_all, gt_all
 
 

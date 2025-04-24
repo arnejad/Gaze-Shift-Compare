@@ -41,6 +41,7 @@ def print_results(sample_preds, sample_gt, event_preds, event_gt, printBool=True
     #                         sample_preds, display_labels=target_names, 
     #                         cmap='Purples', normalize='pred', values_format='.2f')
     cm_s = metrics.confusion_matrix(sample_gt, sample_preds)
+    cm_s = cm_s.astype('float') / cm_s.sum(axis=1, keepdims=True)
     # plt.show()  # Add this
 
     if printBool:
@@ -52,6 +53,7 @@ def print_results(sample_preds, sample_gt, event_preds, event_gt, printBool=True
     # plt.show()  # Add this
 
     cm_e = metrics.confusion_matrix(event_gt, event_preds)
+    cm_e = cm_e.astype('float') / cm_e.sum(axis=1, keepdims=True)
     # print("sample-level:")
     
     # print("TP:", TP)
