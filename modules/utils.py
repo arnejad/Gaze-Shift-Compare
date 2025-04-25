@@ -146,11 +146,15 @@ def evaluate(methodList, data, labels):
         # ash_scores_all.append(ash_scores_m)
 
     # return f1s_all, f1e_all, ash_scores_all, cm_s_avg, cm_e_avg
-    print("Method: " + method.__name__)
-    print("sample: " + str(np.mean(f1s_all)) + " event: " + str(np.mean(f1e_all)) + " ashscore: " + str(np.mean(ash_scores_all)))
-    confMat_visualizer(cm_s_avg, cm_e_avg, method.__name__)
+    outputPerformance(method.__name__, f1s_all, f1e_all, cm_s_avg, cm_e_avg)
+    # print("Method: " + method.__name__)
+    # print("sample: " + str(np.mean(f1s_all)) + " event: " + str(np.mean(f1e_all)) + " ashscore: " + str(np.mean(ash_scores_all)))
+    # confMat_visualizer(cm_s_avg, cm_e_avg, method.__name__)
         
-
+def outputPerformance(methodName, allF1s, allF1e, cm_s_avg, cm_e_avg):
+    print("Method: " + methodName)
+    print("sample: " + str(np.mean(allF1s)) + " event: " + str(np.mean(allF1e)))
+    confMat_visualizer(cm_s_avg, cm_e_avg, methodName)
 
 
 def getRanges(arr):

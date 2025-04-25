@@ -4,6 +4,7 @@ from modules.decisionMaker import print_scores as print_scores
 from sklearn.model_selection import train_test_split
 from modules.preprocess import data_stats, divider
 from modules.scorer import score
+from modules.preprocess import data_balancer_Random
 import torch
 import pickle
 import joblib
@@ -100,6 +101,28 @@ def ACEDNV(feats, modelDir):
     # score(preds, lbls)
 
     return preds
+
+def ACEDNV_train(x_train, y_train):
+
+    x_train, y_train = data_balancer_Random(x_train, y_train)
+
+
+    x_train = np.squeeze(x_train)
+    x_train = np.concatenate(x_train)
+
+    y_train = np.squeeze(y_train)
+    y_train = np.concatenate(y_train)
+
+    # x_test = np.squeeze(x_test)
+
+    # y_test = np.squeeze(y_test)
+
+
+    clf = RandomForestClassifier(random_state=0, criterion='gini', n_estimators=300, max_features= 'log2', min_samples_leaf=1, max_depth=50, min_samples_split=2, bootstrap=False)
+    clf.fit(x_train, y_train)
+    with open('/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift.pkl', 'wb') as f:
+        pickle.dump(clf, f)
+
 
 
     

@@ -2,11 +2,31 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.ndimage import median_filter
 import matplotlib.pyplot as plt
+import random
 
 
 from modules.methods.ACEDNV.config import ET_FREQ, CAM_FREQ 
 
 # Functions in this file are extracted from work of Elmadjian et al. on https://github.com/elmadjian/OEMC
+
+
+def eventFinder(Y):
+    events = []
+    i = 0
+    while i < len(Y):
+        g_0 = g_n = int(Y[i])
+        ini, end = i, i
+        while g_0 == g_n and i < len(Y):
+            g_n = int(Y[i])
+            end = i
+            if g_0 == g_n:
+                i += 1
+        if ini == end:
+            i += 1
+            continue
+        events.append([ini, end-1, g_0])
+    return np.array(events)
+
 
 def gazeFeatureExtractor(gaze, labels):
         '''
@@ -363,3 +383,51 @@ def divider (X,Y):
     Y_train = np.concatenate(Y_train)
 
     return X_train, Y_train, X_test, Y_test
+
+
+
+def data_balancer_Random(x, y):
+
+    tmp_y = np.squeeze(y)
+    tmp_y = np.concatenate(tmp_y)
+    ulbls = np.unique(tmp_y)
+    hists = np.zeros((len(x), len(ulbls)))
+    
+    # for each recording
+    for r in range(len(x)):
+
+        # for each class
+        for c in range(0,len(ulbls)):
+            count_c = len(np.where(y[r]==c)[0])
+            hists[r, c] = count_c
+            
+    all_counts = np.sum(hists, axis=0)
+
+    min_count = np.min(all_counts)
+
+    goal_diffs = all_counts - min_count
+    goal_diffs_ratio = (goal_diffs / all_counts)
+
+    # for each recording
+    for r in range(len(x)):
+
+        # for each class
+        for c in range(0,len(ulbls)):
+            events = eventFinder(y[r])
+            event_lens = (events[:, 1] - events[:, 0])+1
+            rec_rm_is = []
+            for e in range(events.shape[0]):
+                start = events[e,0]
+                end = events[e,1]
+                lb = events[e,2]
+                leng = event_lens[e]
+                if goal_diffs_ratio[lb] == 0: continue
+                if leng < 3: continue
+                if int(np.round(leng*goal_diffs_ratio[lb])-1) < 0: continue
+                rm_is = random.sample(range(start, end), int(np.round(leng*goal_diffs_ratio[lb])-1))
+                rec_rm_is.append(rm_is)
+        rec_rm_is = np.concatenate(rec_rm_is).astype(int)
+        y[r] = np.delete(y[r], rec_rm_is)
+        x[r] = np.delete(x[r], rec_rm_is, axis=0)    
+
+    return x, y

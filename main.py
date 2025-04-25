@@ -33,8 +33,8 @@ from config import INP_DIR, LABELER
 
 
 # START UNDER DEV.
-preds, gts = runOEMC()
-evaluate([(runOEMC, {})], preds, gts)
+ds_x, ds_y = aceReader(LABELER)       #ACE-DNV's dataloader
+evaluate([(ACEDNV, {"modelDir": "/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift.pkl"})], ds_x, ds_y)
 
 ### Main body of execution
 # Note: Different methods have different dataloaders or different settings for reading
