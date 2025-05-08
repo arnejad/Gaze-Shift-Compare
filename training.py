@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import sys
+import pickle
 
 from modules.dataloader import dataloader, converDataToGazeNet, listRecNames
 
@@ -17,9 +18,8 @@ from modules.methods.ACEDNV.modules.scorer import score
 ### Load Methods
 from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
-from modules.methods.gazeNet.myRun import gazeNet
-# from modules.methods.remodnav.myRun import pred as remodnav 
-# from modules.methods.I2MC.I2MC_api import run as i2mc
+from modules.methods.gazeNet.myTrain import main as gazeNet_train
+from modules.methods.gazeNet.myRun import predict_LOO as gazeNet_predict
 from modules.methods.ACEDNV.modules.eventDetector import ACEDNV_train, ACEDNV
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
 from modules.methods.ranking.resReader import ranking as rankingPreCompPred
@@ -31,6 +31,63 @@ from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
 from modules.utils import outputPerformance
 from config import INP_DIR, LABELER
+
+
+
+#GazeNet
+
+# data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
+# df = converDataToGazeNet(data, labels, dummy=False, forTrain=True)
+
+# with open("/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model/data/my_train.pkl", "wb") as f:
+#     pickle.dump(df, f)
+# gazeNet_train(df, "temp.pt", model_dir="/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model", num_epochs=5, num_workers=2, seed=123)
+# 
+
+
+data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
+
+f1s_m=[] #all f1 scores obtained in for this threshold on all recording
+f1e_m=[]
+ash_scores_m = []
+cm_s_all = [[0,0],[0,0]]
+cm_e_all = [[0,0],[0,0]]
+modelDir = "/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model"
+print("training GazeNet")
+for p in range(1, len(labels)):
+    print("leave " + str(p) + " out")
+    # Leave-one-out
+    x_test = [data[p]]
+    y_test =  [labels[p]]
+    x_train = data.copy()
+    del x_train[p]
+    y_train = labels.copy()
+    del y_train [p]
+    
+
+    train_df = converDataToGazeNet(x_train, y_train, dummy=False, forTrain=True)
+    test_df =  converDataToGazeNet(x_test, y_test, dummy=False, forTrain=True)
+
+    gazeNet_train(train_df, str(p)+".pt", model_dir=modelDir, num_epochs=15, num_workers=2, seed=123)
+
+    preds, gts = gazeNet_predict(os.path.join(modelDir, str(p)+".pt"), test_df)
+
+    preds = np.concatenate(preds)
+    gts = np.concatenate(gts)
+
+    f1s_mi, f1e_mi, cm_s, cm_e = score(preds, gts, printBool=False)
+    f1s_m.append(f1s_mi)
+    f1e_m.append(f1e_mi)
+    # ash_scores_m.append(ash_score_mi)
+    cm_s_all = cm_s_all+cm_s
+    cm_e_all = cm_e_all+cm_e
+cm_s_avg = np.array(cm_s_all)/(len(labels))
+cm_e_avg = np.array(cm_e_all)/(len(labels))
+outputPerformance("GazeNet-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
+
+
+
+
 
 
 #ACE-DNV
@@ -58,7 +115,7 @@ for p in range(1, len(ds_y)):
 
     preds = ACEDNV(x_test, model_dir)      # Test on the left-out recording
 
-    f1s_mi, f1e_mi, cm_s, cm_e = score(y_test, preds, printBool=False)
+    f1s_mi, f1e_mi, cm_s, cm_e = score(preds, y_test, printBool=False)
     f1s_m.append(f1s_mi)
     f1e_m.append(f1e_mi)
     # ash_scores_m.append(ash_score_mi)
@@ -66,7 +123,7 @@ for p in range(1, len(ds_y)):
     cm_e_all = cm_e_all+cm_e
 cm_s_avg = np.array(cm_s_all)/(len(ds_y))
 cm_e_avg = np.array(cm_e_all)/(len(ds_y))
-outputPerformance("ACEDNV-trained", f1s_m, f1e_m, cm_s_all, cm_e_all)
+outputPerformance("ACEDNV-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
 #OEMC

@@ -1,7 +1,7 @@
 {
     "cuda": true, 
     "mode": "train", 
-    "seq_len": 100, 
+    "seq_len": 150, 
     "split_seqs": true, 
     "events": [
         1, 
@@ -15,13 +15,13 @@
         0.005
     ], 
     "data_train": [
-        "data.gen.pkl"
+        "my_train.pkl"
     ], 
     "data_val": [
-        "data.val_clean.pkl"
+        "my_val.pkl"
     ], 
     "data_train_gen": [
-        "data.unpaired_clean.pkl"
+        "my_train_gen.pkl"
     ], 
     "save_every": 50, 
     "val_every": 50, 

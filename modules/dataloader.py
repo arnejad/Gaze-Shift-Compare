@@ -133,7 +133,7 @@ def converDataToGazeNet_old(data, labels, dummy=False):
 
 
 
-def converDataToGazeNet(data, labels, dummy=False):
+def converDataToGazeNet(data, labels, dummy=False, forTrain=False):
     
     all_data = []
     
@@ -144,18 +144,25 @@ def converDataToGazeNet(data, labels, dummy=False):
             'evt': labels[i]
         })
 
-        # matching our labels with gazeNet standard
-        df.loc[df['evt'] == 1, 'evt'] = 2   # our saccade 1 to gazeNet saccade 2
-        df.loc[df['evt'] == 0, 'evt'] = 1   # our fixation 0 to gazeNet fixation 1
-        df.loc[df['evt'] == -1, 'evt'] = 3  # our blink -1 to gazeNet blink 3
+        if not forTrain:
+            # matching our labels with gazeNet standard
+            df.loc[df['evt'] == 1, 'evt'] = 2   # our saccade 1 to gazeNet saccade 2
+            df.loc[df['evt'] == 0, 'evt'] = 1   # our fixation 0 to gazeNet fixation 1
+            df.loc[df['evt'] == -1, 'evt'] = 3  # our blink -1 to gazeNet blink 3
+        else:
+            df.loc[df['evt'] == 1, 'evt'] = 2   # our saccade 1 to gazeNet saccade 2
+            df.loc[df['evt'] == 0, 'evt'] = 1   # our fixation 0 to gazeNet fixation 1
+            df.loc[df['evt'] == -1, 'evt'] = 1
 
         _status = np.isnan(df['x']) | \
               np.isnan(df['y']) | \
               ~np.in1d(df['evt'], [1,2,3])
         df['status'] = ~_status    
         
-
-        all_data.append([df])
+        if forTrain:
+            all_data.append(df)
+        else:    
+            all_data.append([df])
 
     # df_all = [df]
 

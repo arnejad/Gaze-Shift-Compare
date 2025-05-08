@@ -117,3 +117,52 @@ def gazeNet(X_test):
     return pr
 
 
+
+
+def predict_LOO(model_path, data, device=None, batch_size=1):
+    # === 1. Load model checkpoint ===
+    checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
+    config = checkpoint['config']
+    config['split_seqs'] = False
+    config['augment'] = False
+    config['batch_size'] = batch_size
+
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # === 2. Build model with 2 output classes ===
+    model = gazeNET(config, num_classes=2)
+    # model = torch.nn.DataParallel(model)
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    # Replace final layer (3 → 2 classes), just like in training
+    # old_fc_layer = model.fc[0].module  # SequenceWise(Linear)
+    # new_fc_layer = torch.nn.Linear(old_fc_layer.in_features, 2, bias=False)
+
+    # with torch.no_grad():
+    #     new_fc_layer.weight[0] = 0.5 * (old_fc_layer.weight[0] + old_fc_layer.weight[1])
+    #     new_fc_layer.weight[1] = old_fc_layer.weight[2]
+
+    # model.fc[0].module = new_fc_layer
+
+    model = torch.nn.DataParallel(model).to(device)
+    model.eval()
+
+    # === 3. Prepare input data ===
+    dataset = EMDataset(config=config, gaze_data=data)
+    dataloader = GazeDataLoader(dataset, batch_size=config['batch_size'],
+                                shuffle=False, num_workers=0)
+
+    # === 4. Run inference ===
+    all_predictions = []
+    all_gts = []
+    with torch.no_grad():
+        for inputs, targets, _, _, _ in dataloader:
+            inputs = inputs.to(device)
+            outputs = model(inputs)
+            preds = torch.argmax(outputs, dim=-1).cpu().numpy()  # [B, T]
+            targs = targets.cpu()  
+            
+            all_predictions.extend(preds)
+            all_gts.append(targs)
+    return all_predictions, all_gts
