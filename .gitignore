@@ -9,3 +9,4 @@
 *.png
 cached/VU_s9_f250_w1_o0
 degs_cached_optimization
+modules/methods/gazeNet/logdir/my_model

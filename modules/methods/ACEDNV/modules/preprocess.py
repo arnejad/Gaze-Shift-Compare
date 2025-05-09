@@ -431,3 +431,61 @@ def data_balancer_Random(x, y):
         x[r] = np.delete(x[r], rec_rm_is, axis=0)    
 
     return x, y
+
+
+
+
+def data_balancer_nonRandom(x, y):
+
+    tmp_y = np.squeeze(y)
+    tmp_y = np.concatenate(tmp_y)
+    ulbls = np.unique(tmp_y)
+    hists = np.zeros((len(x), len(ulbls)))
+    
+    # for each recording
+    for r in range(len(x)):
+
+        # for each class
+        for c in range(0,len(ulbls)):
+            count_c = len(np.where(y[r]==c)[0])
+            hists[r, c] = count_c
+            
+    all_counts = np.sum(hists, axis=0)
+
+    min_count = np.min(all_counts)
+
+    # for each event
+    for c in range(0,len(ulbls)):
+        #divide$&conqure resampling
+        delection_counts = np.array(hists[:, c])
+        goal_diff = all_counts[c] - min_count
+
+        remain = min_count
+        while True:
+
+            record_extract_factor = np.round(remain / (len(np.where(delection_counts > 0)[0])+0.0000001))
+            # record_extract_factor = goal_diff
+            delection_counts[np.where(delection_counts>0)] -= record_extract_factor
+
+            if len(np.where(delection_counts < 0)[0]) == 0:
+                hists[:, c] -= delection_counts  # subtract the number to be erased
+                break
+            else:
+                remain = np.sum(np.abs(delection_counts[np.where(delection_counts<0)]))
+                delection_counts[np.where(delection_counts<0)] = 0
+
+
+    #remove samples            
+    for c in range(0,len(ulbls)): #each class
+        for r in range(len(x)):  #each recordings
+            count = hists[r, c]
+            rmInd = np.where(y[r]==c)[0]
+            #leave borders
+            begBorders = np.where((rmInd[1:] - rmInd[:-1])>1)[0]
+            # endBorders = begBorders-1
+            # rmInd = np.delete(rmInd, np.concatenate((begBorders, endBorders), axis=0))
+            rmInd = np.delete(rmInd, begBorders, axis=0)
+            y[r] = np.delete(y[r], rmInd[int(count):])
+            x[r] = np.delete(x[r], rmInd[int(count):], axis=0)
+
+    return x, y

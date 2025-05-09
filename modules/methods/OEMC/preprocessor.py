@@ -145,7 +145,7 @@ class Preprocessor():
         return train_X, train_Y, test_X, test_Y
 
     
-    def load_data_k_fold(self, base_path, rec, folds=5):
+    def load_data_k_fold(self, base_path, recs, folds=5):
         '''
         Generator that returns a different split training/test
         at each call based on the number of total folds
@@ -156,9 +156,10 @@ class Preprocessor():
             X_base, Y_base = None, None
             
             # following lines adapted to our dataset
-            recs = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
+            # recs = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
             
-            recs = [rec]
+            if type(recs) != list:
+                recs = [recs]
 
             for r in recs:
                 src = os.path.join(base_path, r, (r+".npz"))
@@ -251,6 +252,9 @@ class Preprocessor():
                        an offset of 1 = next sample is the target
                        an offset of -5 = look-ahead of 5 
         '''
+        rmidcs = np.where(data[:,3] == -1) # remove blinks
+        data = np.delete(data, rmidcs, axis=0)
+
         strides = [2**val for val in range(self.stride)]
         fac = (self.frequency * self.length)/strides[-1]
         window = [int(np.ceil(i*fac)) for i in strides]
@@ -264,6 +268,7 @@ class Preprocessor():
         c = np.ones(x.shape[0])
         # p = data['Pattern'].to_numpy()
         p = data[:,3]
+
         # p = data[]
         X,Y = self.extract_features(x,y,c,p, window, latency)
         return X, Y

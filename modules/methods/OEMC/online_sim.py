@@ -24,7 +24,7 @@ class OnlineSimulator():
         torch.set_printoptions(sci_mode=False)
 
 
-    def simulate(self, rec, n_folds=None):
+    def simulate(self, rec, model_dir, retrained, n_folds=None):
         fold = self.pr.load_data_k_fold('cached/'+self.pr.append_options(
                                         self.args.dataset), rec, 
                                         folds=self.args.folds)
@@ -35,7 +35,7 @@ class OnlineSimulator():
         for fold_i in range(n_folds):
             _, _, teX, teY = next(fold)
             features = teX.shape[1]
-            model = self._load_model(features, fold_i+1)
+            model = self._load_model(features, fold_i+1, model_dir, retrained)
             times = []
             for i in range(len(teX)):
                 if i >= self.args.timesteps:
@@ -55,7 +55,7 @@ class OnlineSimulator():
         return pred_all, gt_all
 
 
-    def OEMC_pred(self):
+    def OEMC_pred(self, model_dir, retrained):
         fold = self.pr.load_data_k_fold('cached/'+self.pr.append_options(
                                         self.args.dataset), 
                                         folds=self.args.folds)
@@ -63,7 +63,7 @@ class OnlineSimulator():
         features = teX.shape[1]
         # teX = self._fill_up_tensor(teX)
         teX = torch.from_numpy(teX).float()
-        model = self._load_model(features, 1+1)
+        model = self._load_model(features, 1+1, model_dir, retrained)
         pred = self._predict(model, teX).cpu().numpy()[0][0]
         return pred
 
@@ -97,20 +97,24 @@ class OnlineSimulator():
         #     f.write(csv)
 
 
-    def _load_model(self, features, fold):
+    def _load_model(self, features, fold, model_dir, retrained):
         filename = f"{self.args.model}_model_{self.args.dataset}_BATCH-"
         filename += f"{self.args.batch_size}_EPOCHS-{self.args.epochs}_FOLD-"
         filename += f"{fold}.pt"
         # path = os.path.join(self.args.mod, filename)
-        path = OEMC_MODEL
+        path = model_dir
+        if retrained:
+            num_classes = 2
+        else:
+            num_classes = 4
         if self.args.model == 'tcn':
-            model = TCN(self.args.timesteps, 4, [30]*4,
+            model = TCN(self.args.timesteps, num_classes, [30]*4,
                 kernel_size=self.args.kernel_size, dropout=self.args.dropout)
         elif self.args.model == 'cnn_lstm':
-            model = CNN_LSTM(self.args.timesteps, 4, self.args.kernel_size, 
+            model = CNN_LSTM(self.args.timesteps, num_classes, self.args.kernel_size, 
                  self.args.dropout, features, self.args.lstm_layers)
         else:
-            model = CNN_LSTM(self.args.timesteps, 4, self.args.kernel_size,
+            model = CNN_LSTM(self.args.timesteps, num_classes, self.args.kernel_size,
                  self.args.dropout, features, self.args.lstm_layers,
                  bidirectional=True)
         if self.args.cpu:

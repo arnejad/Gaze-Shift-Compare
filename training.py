@@ -27,23 +27,48 @@ from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimula
 from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
 from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.methods.OEMC.myRun import runOEMC
+from modules.methods.OEMC.myTrain import train_OEMC
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
 from modules.utils import outputPerformance
 from config import INP_DIR, LABELER
 
+#OEMC
+
+
+
+
+f1s_m=[] #all f1 scores obtained in for this threshold on all recording
+f1e_m=[]
+ash_scores_m = []
+cm_s_all = [[0,0],[0,0]]
+cm_e_all = [[0,0],[0,0]]
+print("training OEMC")
+recs = listRecNames()
+for i, p in enumerate(recs):
+    print("leave " + str(p) + " out")
+    
+    train_recs = recs[:i] + recs[i+1:]
+
+    train_OEMC(train_recs, p)
+    preds, gts = runOEMC([p], 'modules/methods/OEMC/models/tcn_model_VU_BATCH-2048_LOO-' + p + '.pt', retrained=True)
+
+    preds = np.concatenate(preds)
+    gts = np.concatenate(gts)
+
+    f1s_mi, f1e_mi, cm_s, cm_e = score(preds, gts, printBool=False)
+    print("sample: " + str(f1s_mi) + " event: " + str(f1e_mi))
+    f1s_m.append(f1s_mi)
+    f1e_m.append(f1e_mi)
+    # ash_scores_m.append(ash_score_mi)
+    cm_s_all = cm_s_all+cm_s
+    cm_e_all = cm_e_all+cm_e
+cm_s_avg = np.array(cm_s_all)/(len(recs))
+cm_e_avg = np.array(cm_e_all)/(len(recs))
+outputPerformance("OEMC-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
 #GazeNet
-
-# data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
-# df = converDataToGazeNet(data, labels, dummy=False, forTrain=True)
-
-# with open("/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model/data/my_train.pkl", "wb") as f:
-#     pickle.dump(df, f)
-# gazeNet_train(df, "temp.pt", model_dir="/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model", num_epochs=5, num_workers=2, seed=123)
-# 
-
 
 data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
 
@@ -87,9 +112,6 @@ outputPerformance("GazeNet-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
 
-
-
-
 #ACE-DNV
 
 model_dir = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift.pkl'
@@ -111,7 +133,7 @@ for p in range(1, len(ds_y)):
     y_train = np.array(ds_y)
     y_train = np.delete(ds_y, p, 0)
 
-    ACEDNV_train(x_train, y_train)    # train the model with all except one
+    ACEDNV_train(x_train, y_train, downSampling="random")    # train the model with all except one
 
     preds = ACEDNV(x_test, model_dir)      # Test on the left-out recording
 
@@ -126,7 +148,4 @@ cm_e_avg = np.array(cm_e_all)/(len(ds_y))
 outputPerformance("ACEDNV-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
-#OEMC
-
-
-#GazeNet
+print("done")

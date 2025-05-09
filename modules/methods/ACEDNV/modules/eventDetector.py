@@ -4,7 +4,7 @@ from modules.decisionMaker import print_scores as print_scores
 from sklearn.model_selection import train_test_split
 from modules.preprocess import data_stats, divider
 from modules.scorer import score
-from modules.preprocess import data_balancer_Random
+from modules.preprocess import data_balancer_Random, data_balancer_nonRandom
 import torch
 import pickle
 import joblib
@@ -102,9 +102,17 @@ def ACEDNV(feats, modelDir):
 
     return preds
 
-def ACEDNV_train(x_train, y_train):
+def ACEDNV_train(x_train, y_train, downSampling="random"):
 
-    x_train, y_train = data_balancer_Random(x_train, y_train)
+    if downSampling=="random":
+        x_train, y_train = data_balancer_Random(x_train, y_train)
+    elif downSampling=="nonRandom":
+        x_train, y_train = data_balancer_nonRandom(x_train, y_train)
+    elif downSampling!="none":
+        print("Incorrect balancing strategy as input")
+        return 0
+        
+
 
 
     x_train = np.squeeze(x_train)

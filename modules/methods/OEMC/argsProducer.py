@@ -26,7 +26,7 @@ def produceArgs():
     argparser.add_argument('-e',
                            '--epochs',
                            required=False,
-                           default=25,
+                           default=30,
                            type=int)
     argparser.add_argument('-k',
                            '--kernel_size',
@@ -60,7 +60,7 @@ def produceArgs():
                            type=int)
     argparser.add_argument('--lr',
                             required=False,
-                            default=0.01,
+                            default=0.0001,
                             type=float)
     argparser.add_argument('--no_lr_decay',
                            required=False,

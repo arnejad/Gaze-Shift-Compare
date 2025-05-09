@@ -29,13 +29,16 @@ from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.methods.OEMC.myRun import runOEMC
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
-from config import INP_DIR, LABELER
+from config import INP_DIR, LABELER, OEMC_MODEL
 
 
 # START UNDER DEV.
-data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
-df = converDataToGazeNet(data, labels, dummy=False)
-evaluate([(gazeNet, {})], df, labels)
+recs = listRecNames()
+preds, gts = runOEMC(recs, OEMC_MODEL)
+evaluate([(runOEMC, {})], preds, gts)
+
+
+
 ### Main body of execution
 # Note: Different methods have different dataloaders or different settings for reading
 
@@ -111,7 +114,8 @@ evaluate([(runMovingWindow, {})], preds, labels)
 # f1_s, f1_e, ashscore = score(preds, gt, printBool=False)
 # print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
-preds, gts = runOEMC()
+recs = listRecNames()
+preds, gts = runOEMC(recs, OEMC_MODEL)
 evaluate([(runOEMC, {})], preds, gts)
 
 

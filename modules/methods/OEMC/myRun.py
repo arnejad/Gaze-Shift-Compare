@@ -10,20 +10,20 @@ from config import INP_DIR, LABELER
 
 
 
-def runOEMC():
+def runOEMC(recs, model_dir, retrained=False):
     print("Running OEMC:")
     oemc_args = OEMC_ArgsReplicator()
     oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
                                         stride=oemc_args.strides,frequency=250)
-    oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
+    # oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
     oemcSimulator = OEMC_OnlineSimulator(oemc_args)
-    recs = listRecNames()
+    # recs = listRecNames()
     # recs = ['p5'] # for debugging
     preds_all = []
     gt_all = []
     for r in recs:
         print("Recording: " + r + "\n")
-        preds, gt = oemcSimulator.simulate(r, 1)
+        preds, gt = oemcSimulator.simulate(r, model_dir, retrained, n_folds=1)
 
         preds = np.array(preds)
         gt = np.array(gt)
