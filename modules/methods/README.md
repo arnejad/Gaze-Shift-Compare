@@ -1,1 +1,2 @@
-## Codes in this folder are adapted and redstributed under MIT license or with the permission of the authors
+## All codes except for our Ranking Method in this folder are adapted and redstributed under MIT license or with the permission of the authors. 
+The readme files in their folders or the main scripts includes a link to the original repository.
