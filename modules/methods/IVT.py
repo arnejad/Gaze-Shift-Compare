@@ -15,7 +15,27 @@ import numpy as np
 from config import ET_SAMPLING_RATE
 # In the origin code they assumed that the frequency is 500Hz so there is 2ms gap between every two samples
 # we changed 2ms to read from the config file
-def ivt(data,v_threshold):
+
+
+def enforce_min_duration(labels, min_duration_ms, sampling_rate):
+    labels = labels.copy()
+    min_samples = int(round((min_duration_ms / 1000.0) * sampling_rate))
+
+    i = 0
+    while i < len(labels):
+        if labels[i] == 0:  # start of potential fixation
+            start = i
+            while i < len(labels) and labels[i] == 0:
+                i += 1
+            duration = i - start
+            if duration < min_samples:
+                labels[start:i] = [1] * duration  # reclassify as saccade
+        else:
+            i += 1
+    return labels
+
+
+def ivt(data,v_threshold, min_fixation_duration_ms):
   t_dist = (1/ET_SAMPLING_RATE)*1000
   Xs = data[:,[0]]
   Ys = data[:,[1]]
@@ -45,6 +65,8 @@ def ivt(data,v_threshold):
         mvmts.append(0)
     else:
         mvmts.append(1)
+
+  mvmts = enforce_min_duration(mvmts, min_fixation_duration_ms, ET_SAMPLING_RATE)
 
   # return mvmts,velocity
   return mvmts

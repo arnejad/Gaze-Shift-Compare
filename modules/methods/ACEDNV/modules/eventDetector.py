@@ -126,7 +126,9 @@ def ACEDNV_train(x_train, y_train, downSampling="random"):
     # y_test = np.squeeze(y_test)
 
 
-    clf = RandomForestClassifier(random_state=0, criterion='gini', n_estimators=300, max_features= 'log2', min_samples_leaf=1, max_depth=50, min_samples_split=2, bootstrap=False)
+    # clf = RandomForestClassifier(random_state=0, criterion='gini', n_estimators=300, max_features= 'log2', min_samples_leaf=1, max_depth=50, min_samples_split=2, bootstrap=False)
+    clf = RandomForestClassifier()
+
     clf.fit(x_train, y_train)
     with open('/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift.pkl', 'wb') as f:
         pickle.dump(clf, f)

@@ -5,7 +5,7 @@ from modules.methods.IVT import ivt
 from modules.methods.IDT import idt
 from modules.dataloader import dataloader
 from modules.methods.ACEDNV.modules.scorer import score as scorer
-from modules.methods.Hooge.run import runSlidingWindow
+from modules.methods.Hooge.run import runMovingWindow
 from modules.utils import drawProgress
 import matplotlib.pyplot as plt
 
@@ -14,7 +14,7 @@ plt.ion()
 
 #optimize on one sample from both labelers
 singleSampleBothLabler = True
-method="sw" #choose between "ivt", "idt" and "sw"
+method="ivt" #choose between "ivt", "idt" and "mw"
 
 def optimize_threshold(
     func_to_optimize,  # the function whose score you want to optimize
@@ -50,18 +50,29 @@ def optimize_threshold(
 
     return best_threshold, best_score
 
-def showHeatmap(scoreTable, thresholds1, thresholds2, mode):
+def showHeatmap(scoreTable, thresholds1, thresholds2, mode, alg_name):
     fig, ax = plt.subplots()
-    c = ax.imshow(scoreTable, cmap='viridis', origin='lower', aspect='auto', vmin=0, vmax=100)
+    c = ax.imshow(scoreTable, cmap='viridis', origin='lower', aspect='auto', vmin=0, vmax=1)
 
     ax.set_xticks(np.arange(len(thresholds2)))
     ax.set_yticks(np.arange(len(thresholds1)))
     ax.set_xticklabels(thresholds2)
     ax.set_yticklabels(thresholds1)
 
-    ax.set_xlabel('Lambda')
-    ax.set_ylabel('Window size')
-    ax.set_title('Algorithm Performance Heatmap')
+    if alg_name == "mw":
+        ax.set_xlabel('Lambda')
+        ax.set_ylabel('Window size (samples)')
+        alg_name_tp = "Moving Window"
+    elif alg_name == "idt":
+        ax.set_ylabel('Dispersion threshold (pixels)')
+        ax.set_xlabel('Minimum duration (ms)')
+        alg_name_tp = "I-DT"
+    elif alg_name == "ivt":
+        ax.set_ylabel('Velocity threshold (pixels/ms)')
+        ax.set_xlabel('Minimum duration (ms)')
+        alg_name_tp = "I-VT"
+
+    ax.set_title(alg_name_tp + ' Performance Heatmap')
     fig.colorbar(c, ax=ax, label='Performance Score (%)')
 
     for i in range(len(thresholds1)):
@@ -71,12 +82,12 @@ def showHeatmap(scoreTable, thresholds1, thresholds2, mode):
 
     plt.tight_layout()
     plt.ioff()
-    plt.savefig("SW-"+mode+".png", dpi=300)
+    plt.savefig(alg_name_tp+"-"+mode+".png", dpi=300)
     plt.show(block=False)
 
 
 def optimizeDoubleThreshold(func_to_optimize,  # the function whose score you want to optimize
-    thresholds1, thresholds2, data, labels):
+    thresholds1, thresholds2, data, labels, alg_name):
     f1s_all = np.zeros((len(thresholds1), len(thresholds2)))    #f1 scores of each threshold for each recording
     f1e_all = np.zeros((len(thresholds1), len(thresholds2)))
 
@@ -87,25 +98,26 @@ def optimizeDoubleThreshold(func_to_optimize,  # the function whose score you wa
             f1e_t=[]
 
             # Compute the score using the passed function
-            preds = func_to_optimize(data, t1, t2)
-            
-            for i, pred in enumerate(preds):
-                f1s_ti, f1e_ti = scorer(pred, labels[i], printBool=False)   #f1 scores for this recording on this threshold
-                f1s_t.append(f1s_ti*100)
-                f1e_t.append(f1e_ti*100)
-            
+
+            for i, rec in enumerate(data):
+                print("rec: " + str(i))
+                preds = func_to_optimize(rec, t1, t2)
+                f1s_ti, f1e_ti, _,_ = scorer(preds, labels[i], printBool=False)   #f1 scores for this recording on this threshold
+                f1s_t.append(f1s_ti)
+                f1e_t.append(f1e_ti)
+                
             f1s_all[t1_i, t2_i] = np.mean(f1s_t)
             f1e_all[t1_i, t2_i] = np.mean(f1e_t)
 
-    showHeatmap(f1e_all, thresholds1, thresholds2, "event")
-    showHeatmap(f1s_all, thresholds1, thresholds2, "sample")
+    showHeatmap(f1e_all, thresholds1, thresholds2, "event", alg_name)
+    showHeatmap(f1s_all, thresholds1, thresholds2, "sample", alg_name)
 
     print("Parameter check complete")
 
 
 if singleSampleBothLabler:
 
-    if method=="sw":
+    if method=="mw":
         data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=True, incTimes=True)
         data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=True, incTimes=True)
 
@@ -125,15 +137,17 @@ else:
 
 
 if method=="idt":
-    best_thr_2, best_score_2 = optimize_threshold(idt, np.arange(0, 60, 1), data, [sub_list[1:-1] for sub_list in labels], "idt")
-    print("idt 2 best:", best_thr_2, best_score_2)
+    # best_thr_2, best_score_2 = optimize_threshold(idt, np.arange(0, 60, 1), data, [sub_list[1:-1] for sub_list in labels], "idt")
+    optimizeDoubleThreshold(idt, np.arange(10, 26, 1), np.arange(0, 101, 25), data, [sub_list[1:-1] for sub_list in labels], "idt")
+    # print("idt 2 best:", best_thr_2, best_score_2)
 
-elif method=="idt":
+elif method=="ivt":
     # best_thr_1, best_score_1 = optimize_threshold(ivt, np.arange(0, 7, 0.5), data, [sub_list[:-1] for sub_list in labels], "ivt")
-    best_thr_1, best_score_1 = optimize_threshold(ivt, np.arange(0, 3.5, 0.5), data, [sub_list[:-1] for sub_list in labels], "ivt")
+    # best_thr_1, best_score_1 = optimize_threshold(ivt, np.arange(0, 3.5, 0.5), data, [sub_list[:-1] for sub_list in labels], "ivt")
+    optimizeDoubleThreshold(ivt, np.arange(0, 3.5, 0.5), np.arange(0, 101, 25), data, [sub_list[:-1] for sub_list in labels], "ivt")
 
-    print("ivt 1 best:", best_thr_1, best_score_1)
-elif method=="sw":
+    # print("ivt 1 best:", best_thr_1, best_score_1)
+elif method=="mw":
     print("s")
-    optimizeDoubleThreshold(runSlidingWindow, np.arange(3000, 10000, 1000), np.arange(1, 5.5, 0.5), data, labels)
+    optimizeDoubleThreshold(runMovingWindow, np.arange(3000, 10000, 1000), np.arange(1, 5.5, 0.5), data, labels)
     # optimizeDoubleThreshold(runSlidingWindow, np.arange(8000, 9001, 1000), np.arange(2.5, 3.5, 0.5), data, labels)
