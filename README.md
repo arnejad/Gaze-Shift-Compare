@@ -12,7 +12,7 @@ The public dataset can be found in the following link:
 
 [https://unishare.nl/index.php/s/Ypgm3btwGs5wAYr](https://unishare.nl/index.php/s/Ypgm3btwGs5wAYr)
 
-Before being able to run the code, write an script that creates a folder named `image_2` in each particiapnt folder and transforms each `world.mp4` video to a set of images from the frames of the video. The naming of the image frames should start from `000001.png`. 
+Before being able to run the code, write an script that creates a folder named `image_2` in each particiapnt folder and transforms each `world.mp4` video to a set of images from the frames of the video. The naming of the image frames should start from `000001.png`. This folder will be only needed by ACE-DNV method.
 
 
 The required libriaries and independencies are listed in the `requirements.txt`. You can use pip to install all of them together.
