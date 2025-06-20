@@ -15,6 +15,12 @@ The public dataset can be found in the following link:
 Before being able to run the code, write an script that creates a folder named `image_2` in each particiapnt folder and transforms each `world.mp4` video to a set of images from the frames of the video. The naming of the image frames should start from `000001.png`. 
 
 
+The required libriaries and independencies are listed in the `requirements.txt`. You can use pip to install all of them together.
+
+Set the address to the data folder in the `config.py`. 
+
+For comparing all the methods including the pre-trained machine-learning-based methods, run `main.py`. For optimizing the threshold-based methodsm run `optimizeThreshold.py`. To retrain the machine-learning-based methods, execute `training.py`.
+
 For citations please use the following [publication]():
 
 ```
