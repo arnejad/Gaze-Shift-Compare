@@ -9,14 +9,14 @@ from config import INP_DIR, CLOUD_FORMAT, VIDEO_SIZE, DATASET, LABELER
 
 
 
-def _load_PI(labeler, remove_blinks=False, degConv=False, incTimes=False):
+def _load_VU(inputDir, labeler, remove_blinks=False, degConv=False, incTimes=False):
     # list the folders in the directory
-    recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
+    recs = [f for f in listdir(inputDir) if isdir(join(inputDir, f))]
     ds_x = []
     ds_y = []
 
     for r in recs:
-        directory = join(INP_DIR, r)
+        directory = join(inputDir, r)
 
         # list the files inside the input directory
         subFiles = [f for f in listdir(directory) if isfile(join(directory, f))]
@@ -31,23 +31,32 @@ def _load_PI(labeler, remove_blinks=False, degConv=False, incTimes=False):
         # checking if gaze.csv exists
         if 'gaze.csv' in subFiles: 
             gazePath = directory+'/gaze.csv'
+            tempRead = np.genfromtxt(gazePath, delimiter=' ')
         elif "gaze.txt" in subFiles:
             gazePath = directory+'/gaze.txt'
+            tempRead = np.genfromtxt(gazePath, delimiter=' ')
         elif 'gaze_positions.csv' in subFiles:
             gazePath = directory+'/gaze_positions.csv'
         else:
             raise Exception("Could not find gaze.csv or gaze_positions.csv file")
 
         # checking if timestamp.csv exists
-        if not  'world image times.txt' in subFiles: raise Exception("Could not find the world_timestamps.csv file")
-        timestampPath = directory+'/world image times.txt'
+        # if not  'world image times.txt' in subFiles: raise Exception("Could not find the world_timestamps.csv file")
+        # timestampPath = directory+'/world image times.txt'
 
-        timestamps = np.genfromtxt(timestampPath, delimiter=',')
+        if 'world image times.txt' in subFiles:
+            timestampPath = directory+'/world image times.txt'
+        else:
+            raise Exception("Could not find the world_timestamps.csv file")
+
+
+
+        
 
 
         #read gaze files
+        timestamps = np.genfromtxt(timestampPath, delimiter=',')
         tempRead = np.genfromtxt(gazePath, delimiter=' ')
-
         
         gazeTimes = tempRead[:,0]
         gazes = tempRead[:,[1,2]]
@@ -83,18 +92,66 @@ def _load_PI(labeler, remove_blinks=False, degConv=False, incTimes=False):
         
     return ds_x, ds_y
 
+def _load_DrewsDynamic(inputDir, degConv=False, incTimes=False):
+    recs = [f for f in listdir(inputDir) if isdir(join(inputDir, f))]
+    ds_x = []
+    ds_y = []
 
+    for r in recs:
+        directory = join(inputDir, r)
+        subFiles = [f for f in listdir(directory) if isfile(join(directory, f))]
+
+        if 'gaze.npy' in subFiles:
+            gazePath = directory+'/gaze.npy'
+            tempRead = np.load(gazePath)
+        else:
+            raise Exception("Could not find gaze.csv or gaze_positions.csv file")
+        
+        if 'scene_camera.mp4' in subFiles: 
+            vidPath = join(directory, 'world.mp4')
+        else:
+            raise Exception("The input directory contains more than one mp4 file")
+
+
+        if 'time_gaze.npy' in subFiles:
+            timestampPath = directory+'/time_gaze.npy'
+            timestamps = np.load(timestampPath)    
+        else:
+            raise Exception("Could not find the world_timestamps.csv file")
+        
+        gazeTimes = timestamps
+        gazes = tempRead
+
+
+        if degConv:
+            gazes = pix2degConv(gazes)
+        
+        if incTimes:
+            gazes = np.column_stack((gazeTimes, gazes))
+
+        labels = 1 - np.load(directory+'/gt_labels.npy')
+        labels = np.array(labels, dtype=int)
+        # if remove_blinks:
+        #     rmidcs = np.where(labels == -1) # remove blinks
+        #     labels = np.delete(labels, rmidcs)
+        #     gazes = np.delete(gazes, rmidcs, axis=0)
+
+        # # np.savetxt( r + '_gazeMatch.csv', gazeMatch, delimiter=',')
+
+        ds_x.append(gazes)
+        ds_y.append(labels)
+    return ds_x, ds_y
 
 def _load_GiW():
     print("TODO")
     # to work on
 
-def dataloader(labeler,remove_blinks=True, degConv=False, incTimes=False):
-    if DATASET == "PI":
-        return _load_PI(labeler, remove_blinks, degConv, incTimes)
-    elif DATASET == "GiW":
-        return _load_GiW()
-    
+
+def dataloader(dataset, inputDir, labeler,remove_blinks=True, degConv=False, incTimes=False):
+    if dataset == "VU":
+        return _load_VU(inputDir, labeler, remove_blinks, degConv, incTimes)
+    elif dataset == "DrewsDynamic":
+        return _load_DrewsDynamic(inputDir, degConv=degConv, incTimes=incTimes)
     else: raise Exception("The selected dataset is not correct")
 
 

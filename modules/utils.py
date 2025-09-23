@@ -6,6 +6,7 @@ from os.path import isfile, join, isdir
 from config import INP_DIR
 import os
 from sklearn.metrics import ConfusionMatrixDisplay
+import glob
 
 
 def drawProgress_justMean(sample_scores, event_scores, plotted_threshs, alg_name, fig=None, ax=None):
@@ -102,16 +103,13 @@ def confMat_visualizer(cm_s, cm_e, methodName):
 def evaluate(methodList, data, labels):
     
     
-    f1s_all = []
-    f1e_all = []
-    ash_scores_all = []
     for method, params in methodList:
         print("method: " + method.__name__)
         f1s_m=[] #all f1 scores obtained in for this threshold on all recording
         f1e_m=[]
         ash_scores_m = []
-        cm_s_all = [[0,0],[0,0]]
-        cm_e_all = [[0,0],[0,0]]
+        cm_s_m = [[0,0],[0,0]]
+        cm_e_m = [[0,0],[0,0]]
         for i, rec in enumerate(data):
             print("rec: " + str(i))
             # Compute the score using the passed function
@@ -137,16 +135,16 @@ def evaluate(methodList, data, labels):
             f1s_m.append(f1s_mi)
             f1e_m.append(f1e_mi)
             # ash_scores_m.append(ash_score_mi)
-            cm_s_all = cm_s_all+cm_s
-            cm_e_all = cm_e_all+cm_e
-        f1s_all.append(f1s_m)
-        f1e_all.append(f1e_m)
-        cm_s_avg = np.array(cm_s_all)/(i+1)
-        cm_e_avg = np.array(cm_e_all)/(i+1)
+            cm_s_m = cm_s_m+cm_s
+            cm_e_m = cm_e_m+cm_e
+
+        cm_s_m_avg = np.array(cm_s_m)/(i+1)
+        cm_e_m_avg = np.array(cm_e_m)/(i+1)
+        outputPerformance(method.__name__, f1s_m, f1e_m, cm_s_m_avg, cm_e_m_avg)
         # ash_scores_all.append(ash_scores_m)
 
     # return f1s_all, f1e_all, ash_scores_all, cm_s_avg, cm_e_avg
-    outputPerformance(method.__name__, f1s_all, f1e_all, cm_s_avg, cm_e_avg)
+    
     # print("Method: " + method.__name__)
     # print("sample: " + str(np.mean(f1s_all)) + " event: " + str(np.mean(f1e_all)) + " ashscore: " + str(np.mean(ash_scores_all)))
     # confMat_visualizer(cm_s_avg, cm_e_avg, method.__name__)
@@ -193,12 +191,21 @@ def ashScore(pred, gt):
     print(ranges)
 
 
-
+def clearCache(dir):
+    files = glob.glob(os.path.join(dir, "*"))
+    for f in files:
+        if os.path.isfile(f):   # only delete files, not subfolders
+            os.remove(f)
 
 def cacheLoadedData(data):
     
     recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
+
+    if len(data) > 30:
+        data = [data]
+        recs = ['temp']
     # recs = ['p51', 'p52']     #uncomment while running optimization
+    clearCache("degs_cached")
     for idx, array in enumerate(data):
         file_path = os.path.join("degs_cached", recs[idx]+".csv")
         np.savetxt(file_path, array, delimiter=",", fmt="%.5f")  # Save with 5 decimal precision

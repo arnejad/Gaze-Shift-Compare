@@ -37,7 +37,7 @@ from config import INP_DIR, LABELER
 
 #ACE-DNV
 
-model_dir = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift.pkl'
+model_dir = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift-drews.pkl'
 ds_x, ds_y = aceReader(LABELER)       #ACE-DNV's dataloader
 
 f1s_m=[] #all f1 scores obtained in for this threshold on all recording
@@ -56,7 +56,7 @@ for p in range(0, len(ds_y)):
     y_train = np.array(ds_y)
     y_train = np.delete(ds_y, p, 0)
 
-    ACEDNV_train(x_train, y_train, downSampling="random")    # train the model with all except one
+    ACEDNV_train(x_train, y_train, model_dir, downSampling="random")    # train the model with all except one
 
     preds = ACEDNV(x_test, model_dir)      # Test on the left-out recording
 

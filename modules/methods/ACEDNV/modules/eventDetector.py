@@ -102,7 +102,7 @@ def ACEDNV(feats, modelDir):
 
     return preds
 
-def ACEDNV_train(x_train, y_train, downSampling="random"):
+def ACEDNV_train(x_train, y_train, modelDir, downSampling="random"):
 
     if downSampling=="random":
         x_train, y_train = data_balancer_Random(x_train, y_train)
@@ -112,8 +112,6 @@ def ACEDNV_train(x_train, y_train, downSampling="random"):
         print("Incorrect balancing strategy as input")
         return 0
         
-
-
 
     x_train = np.squeeze(x_train)
     x_train = np.concatenate(x_train)
@@ -130,7 +128,7 @@ def ACEDNV_train(x_train, y_train, downSampling="random"):
     clf = RandomForestClassifier()
 
     clf.fit(x_train, y_train)
-    with open('/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift.pkl', 'wb') as f:
+    with open(modelDir, 'wb') as f:
         pickle.dump(clf, f)
 
 

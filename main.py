@@ -29,7 +29,7 @@ from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.methods.OEMC.myRun import runOEMC
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
-from config import INP_DIR, LABELER, OEMC_MODEL
+from config import INP_DIR, LABELER, OEMC_MODEL, DATASET
 
 
 # START UNDER DEV.
@@ -46,9 +46,9 @@ evaluate([(runOEMC, {})], preds, gts)
 
 
 #IDT
-data, labels = dataloader(LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
+data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
 methods = [
-    (idt, {"threshold": 22}),
+    (idt, {"d_threshold": 22}),
     # (ivt, {"v_threshold": 1.2})
 ]
 evaluate(methods, data, labels)
@@ -80,7 +80,7 @@ evaluate([(gazeNet, {})], df, labels)
 # print(remo_res)
 
 
-# Adhoc Alg
+# Ranking Method
 # TODO: investigate the mismatch why blinks are slightly different in adhoc results and manual labels
 adhoc_res, lbls = rankingPreCompPred()
 evaluate([(rankingPreCompPred, {"onlyEM": True})], adhoc_res, lbls)

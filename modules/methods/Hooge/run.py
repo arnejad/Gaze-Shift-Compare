@@ -11,7 +11,7 @@ from config import MATLAB_PATH, INP_DIR
 
 def runMovingWindow(data, windowSize, lmda): # last param is lambda (the word is reserved in python)
 
-    print("Executing Hooget Fixation Detection...")
+    print("Executing Moving Window Fixation Detection...")
     cacheLoadedData(data)      
     env = os.environ.copy()
 
@@ -24,7 +24,9 @@ def runMovingWindow(data, windowSize, lmda): # last param is lambda (the word is
 
     # recs = listdir(join(env["MATLAB_ARGS"], "results"))
     recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
-    # recs = ['p51', 'p52'] #uncomment while running optimization
+    if len(data) > 30:  #this means that there is only one recording given to the function
+        data = [data]
+        recs = ['temp']
     predsAll = []
     for r in recs:
         directory = join(cache_dir, "results", r+".csv")
@@ -33,7 +35,10 @@ def runMovingWindow(data, windowSize, lmda): # last param is lambda (the word is
 
     shutil.rmtree('degs_cached/results')
 
-    return predsAll
+    if len(data) > 30:
+        return predsAll[0]    
+    else:
+        return predsAll
     
 
 

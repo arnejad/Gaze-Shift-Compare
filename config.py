@@ -1,6 +1,7 @@
 # INP_DIR = "/home/ash/projects/video_for_Ashkan/exports"
-INP_DIR = '/media/ash/Expansion/data/Saccade-Detection-Methods'
-DATASET = "PI"              #choose self collected data from Pupil Ivisible by "PI", and gaze-in-wild dataset by "GiW"
+# INP_DIR = '/media/ash/Expansion/data/Saccade-Detection-Methods'
+INP_DIR = "/home/ash/temp/drews-dynamic"
+DATASET = "VU"              #choose self collected data from Pupil Ivisible by "PI", or the one from Drews et al. (2024) by "DrewsDynamic"
 LABELER = "AG"              # choose betweem "EB" and "AG"
 
 CLOUD_FORMAT = False

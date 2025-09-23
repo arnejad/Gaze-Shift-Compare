@@ -9,12 +9,15 @@ from modules.methods.Hooge.run import runMovingWindow
 from modules.utils import drawProgress
 import matplotlib.pyplot as plt
 
+from config import INP_DIR
+
+
 
 plt.ion()
 
 #optimize on one sample from both labelers
-singleSampleBothLabler = True
-method="ivt" #choose between "ivt", "idt" and "mw"
+singleSampleBothLabler = False
+method="mw" #choose between "ivt", "idt" and "mw"
 
 def optimize_threshold(
     func_to_optimize,  # the function whose score you want to optimize
@@ -112,33 +115,33 @@ def optimizeDoubleThreshold(func_to_optimize,  # the function whose score you wa
     showHeatmap(f1e_all, thresholds1, thresholds2, "event", alg_name)
     showHeatmap(f1s_all, thresholds1, thresholds2, "sample", alg_name)
 
+
     print("Parameter check complete")
 
 
 if singleSampleBothLabler:
 
     if method=="mw":
-        data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=True, incTimes=True)
-        data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=True, incTimes=True)
-
-        data_AG, labels_AG = dataloader("AG", remove_blinks=True, degConv=True, incTimes=True)
-        data_AG, labels_AG = dataloader("AG", remove_blinks=True, degConv=True, incTimes=True)
+        data_EB, labels_EB = dataloader("VU", INP_DIR, "EB", remove_blinks=True, degConv=True, incTimes=True)
+        data_AG, labels_AG = dataloader("VU", INP_DIR, "AG", remove_blinks=True, degConv=True, incTimes=True)
     else:
-        data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=False, incTimes=False)
-        data_EB, labels_EB = dataloader("EB", remove_blinks=True, degConv=False, incTimes=False)
+        data_EB, labels_EB = dataloader("VU", INP_DIR, "EB", remove_blinks=True, degConv=False, incTimes=False)
+        data_AG, labels_AG = dataloader("VU", INP_DIR, "AG", remove_blinks=True, degConv=False, incTimes=False)
 
-        data_AG, labels_AG = dataloader("AG", remove_blinks=True, degConv=False, incTimes=False)
-        data_AG, labels_AG = dataloader("AG", remove_blinks=True, degConv=False, incTimes=False)
         
     data = [data_EB[0], data_AG[0]]
     labels = [labels_EB[0], labels_AG[0]]
 else:
-    data, labels = dataloader("EB", remove_blinks=True, degConv=False)
+    # data, labels = dataloader("EB", remove_blinks=True, degConv=False)
+    incTimes= (method=="mw")
+    data, labels = dataloader("DrewsDynamic","/home/ash/temp/drews-dynamic", None, remove_blinks=True, degConv=False, incTimes=incTimes)
+    data = data[:4]
+    labels = labels[:4] 
 
 
 if method=="idt":
     # best_thr_2, best_score_2 = optimize_threshold(idt, np.arange(0, 60, 1), data, [sub_list[1:-1] for sub_list in labels], "idt")
-    optimizeDoubleThreshold(idt, np.arange(10, 26, 1), np.arange(0, 101, 25), data, [sub_list[1:-1] for sub_list in labels], "idt")
+    optimizeDoubleThreshold(idt, np.arange(20, 40, 1), np.arange(0, 101, 25), data, [sub_list[1:-1] for sub_list in labels], "idt")
     # print("idt 2 best:", best_thr_2, best_score_2)
 
 elif method=="ivt":
@@ -149,5 +152,5 @@ elif method=="ivt":
     # print("ivt 1 best:", best_thr_1, best_score_1)
 elif method=="mw":
     print("s")
-    optimizeDoubleThreshold(runMovingWindow, np.arange(3000, 10000, 1000), np.arange(1, 5.5, 0.5), data, labels)
+    optimizeDoubleThreshold(runMovingWindow, np.arange(3000, 10000, 1000), np.arange(1, 5.5, 0.5), data, labels, "mw")
     # optimizeDoubleThreshold(runSlidingWindow, np.arange(8000, 9001, 1000), np.arange(2.5, 3.5, 0.5), data, labels)
