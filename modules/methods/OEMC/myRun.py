@@ -6,16 +6,17 @@ from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.dataloader import listRecNames
 from modules.methods.ACEDNV.modules.scorer import score
 
-from config import INP_DIR, LABELER
+from config import LABELER
 
 
 
-def runOEMC(recs, model_dir, retrained=False):
+def runOEMC(recs, inpDir, dataset, model_dir, retrained=False):
     print("Running OEMC:")
+
     oemc_args = OEMC_ArgsReplicator()
     oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
                                         stride=oemc_args.strides,frequency=250)
-    # oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
+    # oemc_pproc.process_folder(inpDir, dataset, 'cached/DrewsDynamic', LABELER)
     oemcSimulator = OEMC_OnlineSimulator(oemc_args)
     # recs = listRecNames()
     # recs = ['p5'] # for debugging

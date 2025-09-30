@@ -7,8 +7,8 @@ def produceArgs():
     argparser.add_argument('-d',
                            '--dataset',
                            required=False,
-                           default= 'VU',
-                           choices=['hmr', 'gazecom', 'VU'])
+                           default= 'DrewsDynamic',
+                           choices=['hmr', 'gazecom', 'VU', 'DrewsDynamic'])
     argparser.add_argument('-m',
                            '--model',
                             required=False,

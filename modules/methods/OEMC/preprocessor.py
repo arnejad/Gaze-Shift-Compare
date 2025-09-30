@@ -20,7 +20,7 @@ class Preprocessor():
         self.train_Y, self.test_Y = np.empty((0,)), np.empty((0,))
 
 
-    def process_folder(self, base_path, out_path, labeler):
+    def process_folder(self, base_path, dataset, out_path, labeler):
         '''
         Extract features from a folder containing the
         dataset. The processed files are stored in an
@@ -30,13 +30,18 @@ class Preprocessor():
         recs = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
 
         for r in recs:
-            src = os.path.join(base_path, r, 'gaze.txt')
+            subFiles = [f for f in os.listdir(base_path+'/'+r) if os.path.isfile(os.path.join(base_path+'/'+r, f))]
+            if 'gaze.txt' in subFiles: 
+                src = os.path.join(base_path, r, 'gaze.txt')
+            elif 'gaze.npy' in subFiles:
+                src = os.path.join(base_path, r, 'gaze.npy')
+
             outpath = os.path.join(out_path, r)
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
             outfile = os.path.join(out_path, r, r)
             print(f'>>> extracting features from {src}...')
-            data = self.load_file(os.path.join(base_path, r), labeler)
+            data = self.load_file(os.path.join(base_path, r), dataset, labeler)
             # data[:,1:3] = pix2degConv(data[:,1:3])
             data[:,1] = data[:,1]/VIDEO_SIZE[0] #normalize (added to this version for our data)
             data[:,2] = data[:,2]/VIDEO_SIZE[1]
@@ -222,20 +227,22 @@ class Preprocessor():
         return outpath
 
 
-    def load_file(self, folder_path, labeler):
+    def load_file(self, folder_path, dataset, labeler):
         '''
         Read a single file and convert it to DataFrame
         '''
-        # data = pd.read_csv(file_path, sep='\t')
-        # if 'Filename' in data.columns:
-        #     return data.drop(['Filename'], axis=1)
-        data = np.genfromtxt(os.path.join(folder_path, "gaze.txt"), delimiter=' ')
-        data = np.delete(data, 3, 1)
-        match = re.search(r'/(p\d+)(?:/|$)', folder_path)
-        if match: participant = match.group(1)
-        labels = np.array(np.genfromtxt(os.path.join(folder_path, participant+"_manual coding_"+labeler), delimiter=' ')[:,1], dtype=int)
-        return np.column_stack((data, labels))
-
+        if dataset == "VU":
+            data = np.genfromtxt(os.path.join(folder_path, "gaze.txt"), delimiter=' ')
+            data = np.delete(data, 3, 1)
+            match = re.search(r'/(p\d+)(?:/|$)', folder_path)
+            if match: participant = match.group(1)
+            labels = np.array(np.genfromtxt(os.path.join(folder_path, participant+"_manual coding_"+labeler), delimiter=' ')[:,1], dtype=int)
+            return np.column_stack((data, labels))
+        if dataset == "DrewsDynamic":
+            data = np.load(os.path.join(folder_path, "gaze.npy"))
+            times = np.load(os.path.join(folder_path,'time_gaze.npy'))
+            labels = np.load(os.path.join(folder_path,'gt_labels.npy'))
+            return np.column_stack((times, data, labels))
 
     def save_processed_file(self, X, Y, file_path):
         np.savez(file_path, X=X, Y=Y)

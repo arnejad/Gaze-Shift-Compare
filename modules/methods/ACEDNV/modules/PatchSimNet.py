@@ -11,7 +11,7 @@ from modules.methods.ACEDNV.config import PATCH_SIZE, PATCH_PRIOR_STEPS, LAMBDA
 
 CUDA_ID = '0'
 model = '2ch2stream'
-lua_model = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACE-DNV/model-zoo/2ch2stream_notredame.t7'
+lua_model = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/2ch2stream_notredame.t7'
 
 
 def conv2d(input, params, base, stride=1, padding=0):

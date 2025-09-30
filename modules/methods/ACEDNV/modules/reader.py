@@ -4,7 +4,7 @@ import numpy as np
 import scipy.io
 from modules.timeMatcher import timeMatcher
 from modules.PatchSimNet import pred_all as patchNet_predAll
-from modules.methods.ACEDNV.config import INP_DIR, OUT_DIR, VIDEO_SIZE, CLOUD_FORMAT, DATASET, ACTIVITY_NUM, ACIVITY_NAMES
+from modules.methods.ACEDNV.config import OUT_DIR, VIDEO_SIZE, CLOUD_FORMAT, ACTIVITY_NUM, ACIVITY_NAMES
 
 from modules.preprocess import preprocessor
 
@@ -18,13 +18,13 @@ def zScore_norm(featSet):
     return featSet
 
 
-def readDataset(labeler):
+def readDataset(inputDir, dataset, labeler):
 
-    if DATASET == "VisioRUG":
+    if dataset == "VU":
 
 
         # list the folders in the directory
-        recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
+        recs = [f for f in listdir(inputDir) if isdir(join(inputDir, f))]
         ds_x = []
         ds_y = []
 
@@ -33,7 +33,7 @@ def readDataset(labeler):
             # r = '3'
 
             print("reading data recordng from " + r)
-            directory = join(INP_DIR, r)
+            directory = join(inputDir, r)
 
             # list the files inside the input directory
             subFiles = [f for f in listdir(directory) if isfile(join(directory, f))]
@@ -104,281 +104,92 @@ def readDataset(labeler):
             ds_y.append(lbls)
             # break
 
-
-    elif DATASET == "GiW":
-        # list the files inside the input directory
-        subFiles = listdir(INP_DIR)
-        subFiles.pop()
-        # initial structure checks
-        if len(subFiles) < 1:
-            raise Exception("Data does not follow the Gaze-in-the-Wild structure.")
-
-        if not path.exists(INP_DIR+'/Extracted_Data'):
-            raise Exception("Data is not in the Gaze-in-the-Wild structure. Could not find Extracted_Data folder!")
-
-        activityName = ACIVITY_NAMES[ACTIVITY_NUM-1]
-        #filtering participants whom did not participate in activity in question
-        # participants = [s for s in subFiles if path.exists(INP_DIR + s + '/' + str(ACTIVITY_NUM))] 
-
-        #filtering participants whom did participate in activity in question and have been labeled by the chosen labeler
-        participants = [s for s in subFiles if path.exists(INP_DIR + '/Extracted_Data/' + activityName + '/Labels/' + \
-            'PrIdx_'+s+'_TrIdx_' + str(ACTIVITY_NUM) + '_Lbr_' + str(LABELER) + '.mat')] 
-
-        # participants = [s for s in subFiles if path.exists(s)]
-
-        ds_x = []
-        ds_y = []
-
-        for p in range(len(participants)):  #change into read all samples TODO
-        # for p in range(2):
-
-            # video path
-            vidPath = INP_DIR + participants[p] + '/' + str(ACTIVITY_NUM) + '/world.mp4'
-
-            # find the activity name
-            
-            
-
-            # load the data
-            processData = scipy.io.loadmat(INP_DIR + '/Extracted_Data/' + activityName + '/ProcessData_cleaned/' + \
-            'PrIdx_'+participants[p]+'_TrIdx_' + str(ACTIVITY_NUM) + '.mat')
-            
-            # load the labels
-            labels = scipy.io.loadmat(INP_DIR + '/Extracted_Data/' + activityName + '/Labels/' + \
-            'PrIdx_'+participants[p]+'_TrIdx_' + str(ACTIVITY_NUM) + '_Lbr_'+ str(LABELER) +'.mat')
-
-            labels = np.array(labels['LabelData']['Labels'][0])
-            
-            frames = processData['ProcessData']['ETG'][0,0][0,0][5][0]
-            
-
-            # finding the indices that match with frames
-            frames, indcs = np.unique(frames, return_index=True)
-
-            # time points
-            T = np.squeeze(np.array(processData['ProcessData']['T'][0,0]))
-        
-
-
-            # take the gazes out
-            gazes = np.array(processData['ProcessData']['ETG'][0,0][0,0][8] * processData['ProcessData']['ETG'][0,0][0,0][0])
-            
-            # load the environment
-            # headRot = VOAnalyzer(returnDist=False)
-
-            visod = np.loadtxt(INP_DIR+participants[p] + "/"+ str(ACTIVITY_NUM) + "/visOdom.txt", delimiter=' ')
-
-            headRot = visod[:,5]
-
-            frameRange = np.loadtxt(INP_DIR+participants[p] + "/"+ str(ACTIVITY_NUM) + "/range.txt", delimiter=' ')
-            startFrame = frameRange[0]+1
-            endFrame = frameRange[1]
-
-            # if not all headRot were computed we trim until where available
-            rm_indcs = np.where(frames >= len(headRot)+startFrame)
-            indcs = np.delete(indcs, rm_indcs[0])
-            frames = np.delete(frames, rm_indcs[0])
-            # gazeEndTrimmer = np.min(rm_indcs)
-
-
-            # if we started from a specific frame remove the previous ones
-            rm_indcs = np.where(frames < startFrame)
-            indcs = np.delete(indcs, rm_indcs[0])
-            frames = np.delete(frames, rm_indcs[0])
-            # gazeStartTrimmer = np.max(rm_indcs[0])
-
-            
-            # match the gazes that fall into frames
-            gazeMatch = gazes[indcs]
-
-            # reload gazed in [0, 1] 
-            gazes = np.array(processData['ProcessData']['ETG'][0,0][0,0][8])
-
-            # keep the labels that correspond to a frame
-            labels = labels[0]
-            labels = np.squeeze(labels)
-            
-            lblMatch = labels[indcs]
-            TMatch = T[indcs]
-
-            headRot = headRot[frames[:-1]-(int(startFrame)-1)]
-
-
-            # through our timestamps in the gaze in the beginning
-            gazes = gazes[T>TMatch[0]]
-            labels = labels[T>TMatch[0]]
-            T = T[T>TMatch[0]]
-
-            # through our timestamps in the gaze in the end
-            gazes = gazes[T<TMatch[-1]]
-            labels = labels[T<TMatch[-1]]
-            T = T[T<TMatch[-1]]
-
-
-            if not path.exists(INP_DIR + participants[p] + '/' + str(ACTIVITY_NUM) +'/patchDists.csv'): 
-                patchDists = patchNet_predAll(vidPath, gazeMatch, frames)
-                np.savetxt(INP_DIR + participants[p] + '/' + str(ACTIVITY_NUM) +'/patchDists.csv', patchDists, delimiter=',')
-            else:
-                patchDists = np.loadtxt(INP_DIR + participants[p] + '/' + str(ACTIVITY_NUM) +'/patchDists.csv', delimiter=',')
-
-            patchDists = np.transpose(np.array(patchDists))
-
-            feats,lbls = preprocessor(gazes, patchDists, headRot, T, TMatch, labels, lblMatch)
-
-            #temp delete gaze followings
-            rmInd = np.where(lbls==3)[0]
-
-            lbls = np.delete(lbls, rmInd[6000:])
-            feats = np.delete(feats, rmInd[6000:], axis=0)
-
-            print("number of fixations " + str(len(np.where(lbls==0)[0])) + ", saccades " + str(len(np.where(lbls==2)[0])) + ", gazeP " + str(len(np.where(lbls==1)[0])) + ", gazeF " + str(len(np.where(lbls==3)[0])))
-            
-
-            
-            ds_x.append(feats)
-            ds_y.append(lbls)
-
-            # np.savetxt(OUT_DIR+'feats.csv', feats, delimiter=',')
-            # np.savetxt(OUT_DIR+'lbls.csv', lbls, delimiter=',')
-            # np.savetxt(OUT_DIR+'frames.csv', frames, delimiter=',')
-            print("Data successfully loaded for participant " + str(participants[p]))
-
-    elif DATASET == "GiW-selected":
-        # list the files inside the input directory
     
+    elif dataset == "DrewsDynamic":
+        
+        # list the folders in the directory
+        recs = [f for f in listdir(inputDir) if isdir(join(inputDir, f))]
         ds_x = []
         ds_y = []
 
-        rec_list = np.loadtxt(INP_DIR +'files_lblr5.txt', delimiter=',', dtype='str')
-
-        for p in range(len(rec_list)):  #change into read all samples TODO
-        # for p in range(2):
+        for r in recs:
+            # r = "p34"
+            # r = '3'
             
-            activityName = rec_list[p, 2] 
-            activityNum  = rec_list[p, 1]
-            participantNum  = rec_list[p, 0]
+            # if r in ["F", "I", "J", "K", "L"]:
+                # continue
+
+            print("reading data recordng from " + r)
+            directory = join(inputDir, r)
+
+            # list the files inside the input directory
+            subFiles = [f for f in listdir(directory) if isfile(join(directory, f))]
+
+            # find the video in the input directory
+            if 'scene_camera.mp4' in subFiles: 
+                vidPath = join(directory, 'scene_camera.mp4')
+            else:
+                raise Exception("The input directory contains more than one mp4 file")
+
+
+            # checking if gaze.csv exists
+            if 'gaze.npy' in subFiles:
+                gazePath = directory+'/gaze.npy'
+                gazes = np.load(gazePath)
+            else:
+                raise Exception("Could not find gaze.csv or gaze_positions.csv file")
+
+            if 'time_optic_flow.npy' in subFiles:
+                timestamps = np.load(directory+'/time_visual_similarity.npy')
+            else:
+                raise Exception("Could not find the world_timestamps.csv file")
+
+
+            if 'time_gaze.npy' in subFiles:
+                T = np.load(directory+'/time_gaze.npy')
+            else:
+                raise Exception("Could not find the world_timestamps.csv file")
             
-            # video path
-            vidPath = INP_DIR + participantNum + '/' + str(activityNum) + '/world.mp4'
-
-            # load the data
-            processData = scipy.io.loadmat(INP_DIR + '/Extracted_Data/' + activityName + '/ProcessData_cleaned/' + \
-            'PrIdx_'+participantNum+'_TrIdx_' + str(activityNum) + '.mat')
-            
-            # load the labels
-            labels = scipy.io.loadmat(INP_DIR + '/Extracted_Data/' + activityName + '/Labels/' + \
-            'PrIdx_'+participantNum+'_TrIdx_' + str(activityNum) + '_Lbr_'+ str(LABELER) +'.mat')
-
-            labels = np.array(labels['LabelData']['Labels'][0])
-            
-            frames = processData['ProcessData']['ETG'][0,0][0,0][5][0]
-            
-
-            # finding the indices that match with frames
-            frames, indcs = np.unique(frames, return_index=True)
-
-            # time points
-            T = np.squeeze(np.array(processData['ProcessData']['T'][0,0]))
-        
 
 
-            # take the gazes out
-            gazes = np.array(processData['ProcessData']['ETG'][0,0][0,0][8] * processData['ProcessData']['ETG'][0,0][0,0][0])
-            
-            # load the environment
-            # headRot = VOAnalyzer(returnDist=False)
+            if not CLOUD_FORMAT:
+               
+                #the corrdinate origin is bottom left
+                gazes[:,1] = 1 - gazes[:,1]
+                gazes = gazes * [VIDEO_SIZE[1], VIDEO_SIZE[0]]
+    
 
-            visod = np.loadtxt(INP_DIR+participantNum + "/"+ str(activityNum) + "/visOdom.txt", delimiter=' ')
 
+            labels = np.array(np.load(directory+'/gt_labels.npy'), dtype=int)
+
+            # check if imu data exists.
+            gazeMatch, TMatch, frames, lblMatch = timeMatcher(timestamps, np.column_stack((T, gazes)), labels)
+
+            # imuMatch = np.array(timeMatcher(timestamps, imu))
+            visod = np.loadtxt(join(directory, "visOdom.txt"), delimiter=' ')
+            visod = np.delete(visod, (0), axis=0)
             headRot = visod[:,5]
             bodyMotion = visod[:,1:3]
 
-
-            frameRange = np.loadtxt(INP_DIR+participantNum + "/"+ str(activityNum) + "/range.txt", delimiter=' ')
-            startFrame = frameRange[0]+1
-            endFrame = frameRange[1]
-
-            # if not all headRot were computed we trim until where available
-            rm_indcs = np.where(frames >= len(headRot)+startFrame)
-            indcs = np.delete(indcs, rm_indcs[0])
-            frames = np.delete(frames, rm_indcs[0])
-            # gazeEndTrimmer = np.min(rm_indcs)
-
-
-            # if we started from a specific frame remove the previous ones
-            rm_indcs = np.where(frames < startFrame)
-            indcs = np.delete(indcs, rm_indcs[0])
-            frames = np.delete(frames, rm_indcs[0])
-            # gazeStartTrimmer = np.max(rm_indcs[0])
-
             
-            # match the gazes that fall into frames
-            gazeMatch = gazes[indcs]
 
-            # reload gazed in [0, 1] 
-            gazes = np.array(processData['ProcessData']['ETG'][0,0][0,0][8])
-
-            # keep the labels that correspond to a frame
-            labels = labels[0]
-            labels = np.squeeze(labels)
-            
-            lblMatch = labels[indcs]
-            TMatch = T[indcs]
-
-            headRot = headRot[frames[:-1]-(int(startFrame)-1)]
-            bodyMotion = bodyMotion[frames[:-1]-(int(startFrame)-1)]
-
-            # through our timestamps in the gaze in the beginning
-            gazes = gazes[T>TMatch[0]]
-            labels = labels[T>TMatch[0]]
-            T = T[T>TMatch[0]]
-
-            # through our timestamps in the gaze in the end
-            gazes = gazes[T<TMatch[-1]]
-            labels = labels[T<TMatch[-1]]
-            T = T[T<TMatch[-1]]
-
-
-            if not path.exists(INP_DIR + participantNum + '/' + str(activityNum) +'/patchDists.csv'): 
+            if not path.exists(join(directory, 'patchDists.csv')): 
                 patchDists = patchNet_predAll(vidPath, gazeMatch, frames)
-                np.savetxt(INP_DIR + participantNum + '/' + str(activityNum) +'/patchDists.csv', patchDists, delimiter=',')
+                np.savetxt(join(directory, 'patchDists.csv'), patchDists, delimiter=',')
             else:
-                patchDists = np.loadtxt(INP_DIR + participantNum + '/' + str(activityNum) +'/patchDists.csv', delimiter=',')
+                patchDists = np.loadtxt(join(directory, 'patchDists.csv'), delimiter=',')
 
             patchDists = np.transpose(np.array(patchDists))
 
+            # np.savetxt(OUT_DIR + 'gazeMatch.csv', gazeMatch, delimiter=',')
+            if len(patchDists) != (len(TMatch)-1):
+                print("skipping "+r)
+                continue
+
             feats,lbls = preprocessor(gazes, patchDists, headRot, bodyMotion, T, TMatch, labels, lblMatch)
-
-            #temp delete gaze followings
-            # rmInd = np.where(lbls==3)[0]
-            # lbls = np.delete(lbls, rmInd)
-            # feats = np.delete(feats, rmInd, axis=0)
-
-            #temp delete fixation
-            # rmInd = np.where(lbls==0)[0]
-            # lbls = np.delete(lbls, rmInd)
-            # feats = np.delete(feats, rmInd, axis=0)
-
-            # #temp delete gaze p
-            # rmInd = np.where(lbls==1)[0]
-            # lbls = np.delete(lbls, rmInd)
-            # feats = np.delete(feats, rmInd, axis=0)
-
-            # lbls[lbls == 2] = 0
-            # lbls[lbls == 3] = 1
-
-            print("number of fixations " + str(len(np.where(lbls==0)[0])) + ", saccades " + str(len(np.where(lbls==2)[0])) + ", gazeP " + str(len(np.where(lbls==1)[0])) + ", gazeF " + str(len(np.where(lbls==3)[0])))
-            
-            # lbls[np.where(lbls==3)] = 1
             
             ds_x.append(feats)
             ds_y.append(lbls)
-
-            np.savetxt(OUT_DIR+'feats_p' + str(participantNum) + '_a' + str(activityNum)+ '_l' + str(LABELER) +  '.csv', feats, delimiter=',')
-            np.savetxt(OUT_DIR+'lbls_p' + str(participantNum) + '_a' + str(activityNum) + '_l' + str(LABELER) +'.csv', lbls, delimiter=',')
-            np.savetxt(OUT_DIR+'frames_p' + str(participantNum) + '_a' + str(activityNum) +  '.csv', frames, delimiter=',')
-            np.savetxt(OUT_DIR+'gazes_p' + str(participantNum) + '_a' + str(activityNum) +  '.csv', gazeMatch, delimiter=',')
-            print("Data successfully loaded for participant " + str(participantNum) + " task: " + str(activityNum))
     
     ds_x = np.array(ds_x, dtype=object); 
     if ds_y: ds_y = np.array(ds_y, dtype=object)

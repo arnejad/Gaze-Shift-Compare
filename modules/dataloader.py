@@ -226,7 +226,7 @@ def converDataToGazeNet(data, labels, dummy=False, forTrain=False):
     return all_data
 
 
-def listRecNames():
-    recs = [f for f in listdir(INP_DIR) if isdir(join(INP_DIR, f))]
+def listRecNames(inpDir):
+    recs = [f for f in listdir(inpDir) if isdir(join(inpDir, f))]
 
     return recs

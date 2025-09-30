@@ -88,20 +88,18 @@ def ACEDNV(feats, modelDir):
 
     clf = joblib.load(modelDir)
 
-    preds = clf.predict(feats)
-
-    
-    # if lbls: 
-    preds = torch.from_numpy(preds)
-    # lbls = torch.from_numpy(lbls)
+    if len(feats.shape) == 1:
+        preds_all=[]
+        for feat in feats:
+            preds = clf.predict(feat)
+            preds = torch.from_numpy(preds)
+            preds_all.append(preds)
+        return preds_all
+    else:
+        preds = clf.predict(feats)
+        preds = torch.from_numpy(preds)
+        return preds
         
-
-    # if lbls: 
-    # print_scores(preds, lbls, 0, 'RF')
-    # score(preds, lbls)
-
-    return preds
-
 def ACEDNV_train(x_train, y_train, modelDir, downSampling="random"):
 
     if downSampling=="random":

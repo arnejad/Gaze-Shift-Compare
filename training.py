@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import sys
-import pickle
+import math
 
 from modules.dataloader import dataloader, converDataToGazeNet, listRecNames
 
@@ -31,119 +31,140 @@ from modules.methods.OEMC.myTrain import train_OEMC
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
 from modules.utils import outputPerformance
-from config import INP_DIR, LABELER
+from config import INP_DIR, LABELER, DATASET
 
 
+TO_TRAIN = "OEMC"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
+
+use_ceil=False
 
 #ACE-DNV
+if TO_TRAIN == "ACE-DNV":
+    model_dir = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift-drews.pkl'
+    ds_x, ds_y = aceReader(INP_DIR, DATASET, None)       #ACE-DNV's dataloader
 
-model_dir = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift-drews.pkl'
-ds_x, ds_y = aceReader(LABELER)       #ACE-DNV's dataloader
+    n = len(ds_y)
 
-f1s_m=[] #all f1 scores obtained in for this threshold on all recording
-f1e_m=[]
-ash_scores_m = []
-cm_s_all = [[0,0],[0,0]]
-cm_e_all = [[0,0],[0,0]]
-print("training ACE-DNV")
-for p in range(0, len(ds_y)):
-    print("leave " + str(p) + " out")
-    # Leave-one-out
-    x_test = ds_x[p]
-    y_test =  ds_y[p]
-    x_train = np.array(ds_x)
-    x_train = np.delete(ds_x, p, 0)
-    y_train = np.array(ds_y)
-    y_train = np.delete(ds_y, p, 0)
+    test_size = max(1, math.ceil(n/6) if use_ceil else n // 6)
 
-    ACEDNV_train(x_train, y_train, model_dir, downSampling="random")    # train the model with all except one
+    f1s_m=[] #all f1 scores obtained in for this threshold on all recording
+    f1e_m=[]
+    ash_scores_m = []
+    cm_s_all = [[0,0],[0,0]]
+    cm_e_all = [[0,0],[0,0]]
+    print("training ACE-DNV")
+    for start in range(0, n - test_size + 1):
+        end = start + test_size
+        print("leave " + str(start) + " to "+ str(end)+" out")
+        # Leave-one-out
+        x_test = ds_x[start:end]
+        y_test =  ds_y[start:end]
+        x_train = np.concatenate((ds_x[:start], ds_x[end:]), axis=0)
+        y_train = np.concatenate((ds_y[:start], ds_y[end:]), axis=0)
 
-    preds = ACEDNV(x_test, model_dir)      # Test on the left-out recording
+        ACEDNV_train(x_train, y_train, model_dir, downSampling="random")    # train the model with all except one
 
-    f1s_mi, f1e_mi, cm_s, cm_e = score(preds, y_test, printBool=False)
-    f1s_m.append(f1s_mi)
-    f1e_m.append(f1e_mi)
-    # ash_scores_m.append(ash_score_mi)
-    cm_s_all = cm_s_all+cm_s
-    cm_e_all = cm_e_all+cm_e
-cm_s_avg = np.array(cm_s_all)/(len(ds_y))
-cm_e_avg = np.array(cm_e_all)/(len(ds_y))
-outputPerformance("ACEDNV-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
+        preds = ACEDNV(x_test, model_dir)      # Test on the left-out recording
+
+        for t_i, pred in enumerate(preds):
+            f1s_mi, f1e_mi, cm_s, cm_e = score(pred, y_test[t_i], printBool=False)
+            f1s_m.append(f1s_mi)
+            f1e_m.append(f1e_mi)
+        # ash_scores_m.append(ash_score_mi)
+        cm_s_all = cm_s_all+cm_s
+        cm_e_all = cm_e_all+cm_e
+    cm_s_avg = np.array(cm_s_all)/(len(ds_y))
+    cm_e_avg = np.array(cm_e_all)/(len(ds_y))
+    outputPerformance("ACEDNV-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
+
 
 
 #GazeNet
 
-data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
+if TO_TRAIN == "GazeNet":
+    data, labels = dataloader(DATASET, INP_DIR, None, remove_blinks=False, degConv=False)
 
-f1s_m=[] #all f1 scores obtained in for this threshold on all recording
-f1e_m=[]
-ash_scores_m = []
-cm_s_all = [[0,0],[0,0]]
-cm_e_all = [[0,0],[0,0]]
-modelDir = "/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model"
-print("training GazeNet")
-for p in range(0, len(labels)):
-    print("leave " + str(p) + " out")
-    # Leave-one-out
-    x_test = [data[p]]
-    y_test =  [labels[p]]
-    x_train = data.copy()
-    del x_train[p]
-    y_train = labels.copy()
-    del y_train [p]
-    
 
-    train_df = converDataToGazeNet(x_train, y_train, dummy=False, forTrain=True)
-    test_df =  converDataToGazeNet(x_test, y_test, dummy=False, forTrain=True)
 
-    gazeNet_train(train_df, str(p)+".pt", model_dir=modelDir, num_epochs=15, num_workers=2, seed=123)
+    n = len(labels)
 
-    preds, gts = gazeNet_predict(os.path.join(modelDir, str(p)+".pt"), test_df)
+    test_size = max(1, math.ceil(n/6) if use_ceil else n // 6)
 
-    preds = np.concatenate(preds)
-    gts = np.concatenate(gts)
 
-    f1s_mi, f1e_mi, cm_s, cm_e = score(preds, gts, printBool=False)
-    f1s_m.append(f1s_mi)
-    f1e_m.append(f1e_mi)
-    # ash_scores_m.append(ash_score_mi)
-    cm_s_all = cm_s_all+cm_s
-    cm_e_all = cm_e_all+cm_e
-cm_s_avg = np.array(cm_s_all)/(len(labels))
-cm_e_avg = np.array(cm_e_all)/(len(labels))
-outputPerformance("GazeNet-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
+    f1s_m=[] #all f1 scores obtained in for this threshold on all recording
+    f1e_m=[]
+    ash_scores_m = []
+    cm_s_all = [[0,0],[0,0]]
+    cm_e_all = [[0,0],[0,0]]
+    modelDir = "/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model"
+    print("training GazeNet")
+    for start in range(0, n - test_size + 1):
+        end = start + test_size
+        print("leave " + str(start) + " to "+ str(end)+" out")
+        # Leave-one-out
+        x_test = data[start:end]
+        y_test =  labels[start:end]
+        x_train = data.copy()
+        del x_train[start:end]
+        y_train = labels.copy()
+        del y_train [start:end]
+        
+
+        train_df = converDataToGazeNet(x_train, y_train, dummy=False, forTrain=True)
+        test_df =  converDataToGazeNet(x_test, y_test, dummy=False, forTrain=True)
+
+        gazeNet_train(train_df, str(start)+".pt", model_dir=modelDir, num_epochs=15, num_workers=2, seed=123)
+
+        preds, gts = gazeNet_predict(os.path.join(modelDir, str(start)+".pt"), test_df)
+
+        preds = np.concatenate(preds)
+        gts = np.concatenate(gts)
+
+        f1s_mi, f1e_mi, cm_s, cm_e = score(preds, gts, printBool=False)
+        f1s_m.append(f1s_mi)
+        f1e_m.append(f1e_mi)
+        # ash_scores_m.append(ash_score_mi)
+        cm_s_all = cm_s_all+cm_s
+        cm_e_all = cm_e_all+cm_e
+    cm_s_avg = np.array(cm_s_all)/(len(labels))
+    cm_e_avg = np.array(cm_e_all)/(len(labels))
+    outputPerformance("GazeNet-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
 #OEMC
+if TO_TRAIN == "OEMC":
+    f1s_m=[] #all f1 scores obtained in for this threshold on all recording
+    f1e_m=[]
+    ash_scores_m = []
+    cm_s_all = [[0,0],[0,0]]
+    cm_e_all = [[0,0],[0,0]]
+    print("training OEMC")
+    recs = listRecNames(INP_DIR)
+    n = len(recs)
+    test_size = max(1, math.ceil(n/6) if use_ceil else n // 6)
+    for start in range(0, n - test_size + 1):
+        end = start + test_size
+        print("leave " + str(start) + " to "+ str(end)+" out")
+        
+        # end = start + test_size
+        train_recs = recs[:start] + recs[end:]
+        test_recs = recs[start:end]
+        train_OEMC(train_recs, str(start))
+        preds, gts = runOEMC(test_recs, INP_DIR, DATASET, 'modules/methods/OEMC/models/tcn_model_'+DATASET+'_BATCH-2048_LOO-' + str(start) + '.pt', retrained=True)
 
-f1s_m=[] #all f1 scores obtained in for this threshold on all recording
-f1e_m=[]
-ash_scores_m = []
-cm_s_all = [[0,0],[0,0]]
-cm_e_all = [[0,0],[0,0]]
-print("training OEMC")
-recs = listRecNames()
-for i, p in enumerate(recs):
-    print("leave " + str(p) + " out")
-    
-    train_recs = recs[:i] + recs[i+1:]
+        preds = np.concatenate(preds)
+        gts = np.concatenate(gts)
 
-    train_OEMC(train_recs, p)
-    preds, gts = runOEMC([p], 'modules/methods/OEMC/models/tcn_model_VU_BATCH-2048_LOO-' + p + '.pt', retrained=True)
-
-    preds = np.concatenate(preds)
-    gts = np.concatenate(gts)
-
-    f1s_mi, f1e_mi, cm_s, cm_e = score(preds, gts, printBool=False)
-    print("sample: " + str(f1s_mi) + " event: " + str(f1e_mi))
-    f1s_m.append(f1s_mi)
-    f1e_m.append(f1e_mi)
-    # ash_scores_m.append(ash_score_mi)
-    cm_s_all = cm_s_all+cm_s
-    cm_e_all = cm_e_all+cm_e
-cm_s_avg = np.array(cm_s_all)/(len(recs))
-cm_e_avg = np.array(cm_e_all)/(len(recs))
-outputPerformance("OEMC-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
+        f1s_mi, f1e_mi, cm_s, cm_e = score(preds, gts, printBool=False)
+        print("sample: " + str(f1s_mi) + " event: " + str(f1e_mi))
+        f1s_m.append(f1s_mi)
+        f1e_m.append(f1e_mi)
+        # ash_scores_m.append(ash_score_mi)
+        cm_s_all = cm_s_all+cm_s
+        cm_e_all = cm_e_all+cm_e
+    cm_s_avg = np.array(cm_s_all)/(len(recs))
+    cm_e_avg = np.array(cm_e_all)/(len(recs))
+    outputPerformance("OEMC-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
 

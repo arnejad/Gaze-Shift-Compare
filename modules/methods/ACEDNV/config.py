@@ -1,6 +1,6 @@
 # DATA VARIABLES
 # DATASET = "GiW-selected"
-DATASET = "VisioRUG"
+DATASET = "DrewsDynamic"
 # INP_DIR = '/home/ashdev/samples/004'      # the input directory containing the video and gaze signal
 # INP_DIR = '/media/ash/Expansion/data/GiW/'
 # INP_DIR = '/media/ashdev/Expansion/data/Walking_indoors/'
