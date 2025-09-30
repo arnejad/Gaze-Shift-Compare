@@ -129,8 +129,10 @@ def _load_DrewsDynamic(inputDir, degConv=False, incTimes=False):
         if incTimes:
             gazes = np.column_stack((gazeTimes, gazes))
 
-        labels = 1 - np.load(directory+'/gt_labels.npy')
+        # labels = 1 - np.load(directory+'/gt_labels.npy')
+        labels = np.load(directory+'/gt_labels_toggled.npy')
         labels = np.array(labels, dtype=int)
+        
         # if remove_blinks:
         #     rmidcs = np.where(labels == -1) # remove blinks
         #     labels = np.delete(labels, rmidcs)

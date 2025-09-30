@@ -118,14 +118,14 @@ def evaluate(methodList, data, labels):
             if method.__name__ == "idt":
                 adjusted_labels = labels[i][1:-1]        
             # if method.__name__ != "ranking" and method.__name__ != "runMovingWindow" and method.__name__ != "runOEMC": 
-            if method.__name__ not in ["ranking", "runMovingWindow", "runOEMC"]:
+            if method.__name__ not in ["runRankingMethod", "runMovingWindow", "runOEMC"]:
                 preds = method(rec, **params)
             else: preds = rec
 
             if method.__name__ == "gazeNet":
                 adjusted_labels = preds[1] 
                 preds = preds[0]
-            if method.__name__ in {"ACEDNV", "ranking", "runMovingWindow", "runOEMC"}:
+            if method.__name__ in {"ACEDNV", "runRankingMethod", "runMovingWindow", "runOEMC"}:
                 adjusted_labels = labels[i]
             if method.__name__ == "ACEDNV":
                 preds = np.array(preds)

@@ -29,8 +29,16 @@ from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.methods.OEMC.myRun import runOEMC
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
+from modules.methods.ranking.rankingMethod import runRankingMethod
+from modules.methods.ranking.dataReader import readData as rankingReader
 from config import INP_DIR, LABELER, OEMC_MODEL, DATASET
 
+
+gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
+_ , labels = dataloader("DrewsDynamic", INP_DIR, None, remove_blinks=True, degConv=False, incTimes=True)
+preds = runRankingMethod(gazeData, videosList, frameTimes, directories)
+preds = [ (arr > 0).astype(int) for arr in preds ]  #threshold x>0 is set to 1
+evaluate([(runRankingMethod, {})], preds, labels)
 
 data, labels = dataloader("DrewsDynamic", INP_DIR, None, remove_blinks=True, degConv=False, incTimes=True)
 preds = runMovingWindow(data, 6000, 2.7)

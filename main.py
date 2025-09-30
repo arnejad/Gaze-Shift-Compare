@@ -29,21 +29,19 @@ from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.methods.OEMC.myRun import runOEMC
 from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
+from modules.methods.ranking.rankingMethod import runRankingMethod
+from modules.methods.ranking.dataReader import readData as rankingReader
 from config import INP_DIR, LABELER, OEMC_MODEL, DATASET
 
-
 # START UNDER DEV.
-recs = listRecNames()
-preds, gts = runOEMC(recs, OEMC_MODEL)
-evaluate([(runOEMC, {})], preds, gts)
 
+# Ranking Method
+gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
+runRankingMethod(gazeData, videosList, frameTimes, directories)
 
 
 ### Main body of execution
 # Note: Different methods have different dataloaders or different settings for reading
-
-# loading the dataset 
-
 
 #IDT
 data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
@@ -88,7 +86,7 @@ evaluate([(rankingPreCompPred, {"onlyEM": True})], adhoc_res, lbls)
 
 
 # ACE-DNV
-ds_x, ds_y = aceReader(LABELER)       #ACE-DNV's dataloader
+ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)        #ACE-DNV's dataloader
 evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
 # print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
@@ -102,17 +100,6 @@ evaluate([(runMovingWindow, {})], preds, labels)
 
 
 # OEMC
-
-# update OEMC to predict participants individually
-# Warning: SCORES ARE ABOUT 0%
-# oemc_args = OEMC_ArgsReplicator()
-# oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
-#                                       stride=oemc_args.strides,frequency=250)
-# oemc_pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
-# oemcSimulator = OEMC_OnlineSimulator(oemc_args)
-# preds, gt = oemcSimulator.simulate(1)
-# f1_s, f1_e, ashscore = score(preds, gt, printBool=False)
-# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 recs = listRecNames()
 preds, gts = runOEMC(recs, OEMC_MODEL)

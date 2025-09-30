@@ -241,7 +241,7 @@ class Preprocessor():
         if dataset == "DrewsDynamic":
             data = np.load(os.path.join(folder_path, "gaze.npy"))
             times = np.load(os.path.join(folder_path,'time_gaze.npy'))
-            labels = np.load(os.path.join(folder_path,'gt_labels.npy'))
+            labels = np.load(os.path.join(folder_path,'gt_labels_toggled.npy'))
             return np.column_stack((times, data, labels))
 
     def save_processed_file(self, X, Y, file_path):

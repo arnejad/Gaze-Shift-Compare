@@ -160,10 +160,11 @@ def readDataset(inputDir, dataset, labeler):
     
 
 
-            labels = np.array(np.load(directory+'/gt_labels.npy'), dtype=int)
+            labels = np.array(np.load(directory+'/gt_labels_toggled.npy'), dtype=int)
 
             # check if imu data exists.
             gazeMatch, TMatch, frames, lblMatch = timeMatcher(timestamps, np.column_stack((T, gazes)), labels)
+            np.savetxt(directory+'/world image times.txt', TMatch, fmt="%.10f")
 
             # imuMatch = np.array(timeMatcher(timestamps, imu))
             visod = np.loadtxt(join(directory, "visOdom.txt"), delimiter=' ')
