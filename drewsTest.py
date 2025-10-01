@@ -31,21 +31,23 @@ from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
 from modules.methods.ranking.rankingMethod import runRankingMethod
 from modules.methods.ranking.dataReader import readData as rankingReader
-from config import INP_DIR, LABELER, OEMC_MODEL, DATASET
+from config import INP_DIR, LABELER, DATASET, OEMC_MODEL, DATASET
 
+if DATASET == "DrewsDynamic":
+    LABELER = None
 
 gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
-_ , labels = dataloader("DrewsDynamic", INP_DIR, None, remove_blinks=True, degConv=False, incTimes=True)
+_ , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False, incTimes=True)
 preds = runRankingMethod(gazeData, videosList, frameTimes, directories)
 preds = [ (arr > 0).astype(int) for arr in preds ]  #threshold x>0 is set to 1
 evaluate([(runRankingMethod, {})], preds, labels)
 
-data, labels = dataloader("DrewsDynamic", INP_DIR, None, remove_blinks=True, degConv=False, incTimes=True)
+data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False, incTimes=True)
 preds = runMovingWindow(data, 6000, 2.7)
 evaluate([(runMovingWindow, {})], preds, labels)
 
 
-data, labels = dataloader("DrewsDynamic", INP_DIR, None, remove_blinks=True, degConv=False)
+data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False)
 
 methods = [
     (ivt, {"v_threshold": 2.0, "min_fixation_duration_ms":15}),
@@ -63,7 +65,7 @@ evaluate([(runOEMC, {})], preds, gts)
 
 ##### gazeNet
 # Warning: SCORES ARE ABOUT 1%
-data, labels = dataloader(DATASET, INP_DIR, None, remove_blinks=False, degConv=False)
+data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False)
 df = converDataToGazeNet(data, labels, dummy=False)
 evaluate([(gazeNet, {})], df, labels)
 
@@ -72,6 +74,6 @@ evaluate([(gazeNet, {})], df, labels)
 #### ACE-DNV
 # 1- run video2frames.py to get the video frames
 # 2- either run DF-VO, or move the outputs of DF-VO from our published dataset to the folders
-ds_x, ds_y = aceReader(INP_DIR, DATASET, None)       #ACE-DNV's dataloader
+ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)       #ACE-DNV's dataloader
 evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
 

@@ -34,7 +34,7 @@ from modules.utils import outputPerformance
 from config import INP_DIR, LABELER, DATASET
 
 
-TO_TRAIN = "OEMC"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
+TO_TRAIN = "GazeNet"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
 
 use_ceil=False
 
@@ -53,8 +53,9 @@ if TO_TRAIN == "ACE-DNV":
     cm_s_all = [[0,0],[0,0]]
     cm_e_all = [[0,0],[0,0]]
     print("training ACE-DNV")
-    for start in range(0, n - test_size + 1):
-        end = start + test_size
+    for i in range(6):
+        start = i * test_size
+        end = min((i+1) * test_size, n)
         print("leave " + str(start) + " to "+ str(end)+" out")
         # Leave-one-out
         x_test = ds_x[start:end]
@@ -66,15 +67,23 @@ if TO_TRAIN == "ACE-DNV":
 
         preds = ACEDNV(x_test, model_dir)      # Test on the left-out recording
 
+        f1s_mi = 0
+        f1e_mi = 0
+        cm_s_i = [[0,0],[0,0]]
+        cm_e_i = [[0,0],[0,0]]
         for t_i, pred in enumerate(preds):
-            f1s_mi, f1e_mi, cm_s, cm_e = score(pred, y_test[t_i], printBool=False)
-            f1s_m.append(f1s_mi)
-            f1e_m.append(f1e_mi)
+            f1s_mij, f1e_mij, cm_s_ij, cm_e_ij = score(pred, y_test[t_i], printBool=False)
+            f1s_mi += f1s_mij
+            f1e_mi += f1e_mij
+            cm_s_i += cm_s_ij
+            cm_e_i += cm_e_ij
+        f1s_m.append(f1s_mi/(t_i+1))
+        f1e_m.append(f1e_mi/(t_i+1))
         # ash_scores_m.append(ash_score_mi)
-        cm_s_all = cm_s_all+cm_s
-        cm_e_all = cm_e_all+cm_e
-    cm_s_avg = np.array(cm_s_all)/(len(ds_y))
-    cm_e_avg = np.array(cm_e_all)/(len(ds_y))
+        cm_s_all = cm_s_all+(cm_s_i/3)
+        cm_e_all = cm_e_all+(cm_s_i/3)
+    cm_s_avg = np.array(cm_s_all)/(6)
+    cm_e_avg = np.array(cm_e_all)/(6)
     outputPerformance("ACEDNV-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
@@ -98,8 +107,9 @@ if TO_TRAIN == "GazeNet":
     cm_e_all = [[0,0],[0,0]]
     modelDir = "/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model"
     print("training GazeNet")
-    for start in range(0, n - test_size + 1):
-        end = start + test_size
+    for i in range(6):
+        start = i * test_size
+        end = min((i+1) * test_size, n)
         print("leave " + str(start) + " to "+ str(end)+" out")
         # Leave-one-out
         x_test = data[start:end]
@@ -126,8 +136,8 @@ if TO_TRAIN == "GazeNet":
         # ash_scores_m.append(ash_score_mi)
         cm_s_all = cm_s_all+cm_s
         cm_e_all = cm_e_all+cm_e
-    cm_s_avg = np.array(cm_s_all)/(len(labels))
-    cm_e_avg = np.array(cm_e_all)/(len(labels))
+    cm_s_avg = np.array(cm_s_all)/(6)
+    cm_e_avg = np.array(cm_e_all)/(6)
     outputPerformance("GazeNet-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 
@@ -142,8 +152,10 @@ if TO_TRAIN == "OEMC":
     recs = listRecNames(INP_DIR)
     n = len(recs)
     test_size = max(1, math.ceil(n/6) if use_ceil else n // 6)
-    for start in range(0, n - test_size + 1):
-        end = start + test_size
+    for i in range(6):
+        start = i * test_size
+        end = min((i+1) * test_size, n)
+        
         print("leave " + str(start) + " to "+ str(end)+" out")
         
         # end = start + test_size
@@ -162,8 +174,8 @@ if TO_TRAIN == "OEMC":
         # ash_scores_m.append(ash_score_mi)
         cm_s_all = cm_s_all+cm_s
         cm_e_all = cm_e_all+cm_e
-    cm_s_avg = np.array(cm_s_all)/(len(recs))
-    cm_e_avg = np.array(cm_e_all)/(len(recs))
+    cm_s_avg = np.array(cm_s_all)/(6)
+    cm_e_avg = np.array(cm_e_all)/(6)
     outputPerformance("OEMC-trained", f1s_m, f1e_m, cm_s_avg, cm_e_avg)
 
 

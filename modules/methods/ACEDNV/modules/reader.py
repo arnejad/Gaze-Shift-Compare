@@ -17,6 +17,23 @@ def zScore_norm(featSet):
     featSet = featSet+ np.abs(mins)
     return featSet
 
+def simTime2FrameTime(timestamps):
+
+    # midpoints between consecutive timestamps
+    midpoints = (timestamps[:-1] + timestamps[1:]) / 2
+
+    # extrapolated first
+    first_extra = timestamps[0] - (timestamps[1] - timestamps[0]) / 2
+
+    # extrapolated last two
+    step = (timestamps[-1] - timestamps[-2]) / 2
+    last_extra1 = timestamps[-1] + step
+    last_extra2 = last_extra1 + step
+
+    # concatenate all together
+    result = np.concatenate(([first_extra], midpoints, [last_extra1, last_extra2]))
+
+    return result
 
 def readDataset(inputDir, dataset, labeler):
 
@@ -164,7 +181,8 @@ def readDataset(inputDir, dataset, labeler):
 
             # check if imu data exists.
             gazeMatch, TMatch, frames, lblMatch = timeMatcher(timestamps, np.column_stack((T, gazes)), labels)
-            np.savetxt(directory+'/world image times.txt', TMatch, fmt="%.10f")
+            
+            # np.savetxt(directory+'/world image times.txt', simTime2FrameTime(TMatch), fmt="%.10f")
 
             # imuMatch = np.array(timeMatcher(timestamps, imu))
             visod = np.loadtxt(join(directory, "visOdom.txt"), delimiter=' ')

@@ -14,8 +14,8 @@ def runOEMC(recs, inpDir, dataset, model_dir, retrained=False):
     print("Running OEMC:")
 
     oemc_args = OEMC_ArgsReplicator()
-    oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
-                                        stride=oemc_args.strides,frequency=250)
+    # oemc_pproc = oemc_preprocessor(window_length=1,offset=oemc_args.offset,
+    #                                     stride=oemc_args.strides,frequency=250)
     # oemc_pproc.process_folder(inpDir, dataset, 'cached/DrewsDynamic', LABELER)
     oemcSimulator = OEMC_OnlineSimulator(oemc_args)
     # recs = listRecNames()
