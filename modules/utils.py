@@ -210,3 +210,170 @@ def cacheLoadedData(data):
         file_path = os.path.join("degs_cached", recs[idx]+".csv")
         np.savetxt(file_path, array, delimiter=",", fmt="%.5f")  # Save with 5 decimal precision
         print(f"Saved: {file_path}")
+
+
+
+def longSaccadeRemover(timestamps, labels, threshold_ms=150.0):
+    """
+    Turn to 0 any contiguous segment of 1's in `labels` whose duration
+    (based on `timestamps`) is strictly greater than `threshold_ms`.
+
+    Parameters
+    ----------
+    timestamps : array-like of float
+        1D, strictly increasing time stamps (in seconds; negative start OK).
+    labels : array-like of int/bool
+        1D labels aligned with timestamps, containing 0/1.
+    threshold_ms : float
+        Duration threshold in milliseconds.
+
+    Returns
+    -------
+    np.ndarray
+        A copy of labels with long 1-segments flipped to 0.
+    """
+    t = np.asarray(timestamps, dtype=float)
+    y = np.asarray(labels, dtype=int).copy()
+
+    if t.ndim != 1 or y.ndim != 1 or t.shape[0] != y.shape[0]:
+        raise ValueError("timestamps and labels must be 1D and of equal length")
+    if np.any(np.diff(t) <= 0):
+        raise ValueError("timestamps must be strictly increasing")
+
+    thr_s = threshold_ms / 1000.0
+    n = len(y)
+    i = 0
+
+    while i < n:
+        if y[i] == 1:
+            start = i
+            # walk to end of this 1-run
+            while i + 1 < n and y[i + 1] == 1:
+                i += 1
+            end = i
+
+            # Duration estimate: last sample time minus first sample time.
+            # (This assumes per-sample labeling; adjust if you use interval labels.)
+            duration = t[end] - t[start]
+
+            if duration > thr_s:          # “longer than” the threshold
+                y[start:end + 1] = 0
+
+        i += 1
+
+    return y
+
+
+def find_long_saccade_segments(timestamps, labels, threshold_ms=100.0):
+    """
+    Find indices of contiguous 1-segments longer than threshold.
+
+    Parameters
+    ----------
+    timestamps : array-like of float
+        1D strictly increasing timestamps (seconds).
+    labels : array-like of int/bool
+        1D labels aligned with timestamps (0/1).
+    threshold_ms : float
+        Duration threshold in milliseconds.
+
+    Returns
+    -------
+    indices_to_remove : np.ndarray
+        Indices of labels that belong to '1' segments longer than threshold.
+    """
+    t = np.asarray(timestamps, dtype=float)
+    y = np.asarray(labels, dtype=int)
+
+    if t.ndim != 1 or y.ndim != 1 or t.shape[0] != y.shape[0]:
+        raise ValueError("timestamps and labels must be 1D and of equal length")
+    if np.any(np.diff(t) <= 0):
+        raise ValueError("timestamps must be strictly increasing")
+
+    thr_s = threshold_ms / 1000.0
+    n = len(y)
+    indices_to_remove = []
+
+    i = 0
+    while i < n:
+        if y[i] == 1:
+            start = i
+            while i + 1 < n and y[i + 1] == 1:
+                i += 1
+            end = i
+            duration = t[end] - t[start]
+            if duration > thr_s:
+                indices_to_remove.extend(range(start, end + 1))
+        i += 1
+
+    return np.array(indices_to_remove, dtype=int)
+
+
+def plot_one_segment_durations_across_recordings(timestamps_list, labels_list, threshold_ms=None):
+    """
+    Compute and plot the distribution of durations (ms) of all contiguous 1-segments
+    across multiple recordings.
+
+    Parameters
+    ----------
+    timestamps_list : Sequence[Sequence[float]]
+        2D-like structure: each element is a 1D strictly-increasing timestamp array (seconds).
+    labels_list : Sequence[Sequence[int or bool]]
+        2D-like structure: each element is a 1D label array (0/1) aligned with the
+        timestamps array at the same index.
+    threshold_ms : float or None, optional
+        If provided, draw a vertical line at this threshold on the histogram (ms).
+
+    Returns
+    -------
+    np.ndarray
+        Array of all segment durations (ms) found across all recordings (useful for stats).
+    """
+    if len(timestamps_list) != len(labels_list):
+        raise ValueError("timestamps_list and labels_list must have the same number of recordings")
+
+    all_durations_ms = []
+
+    for rec_idx, (t_arr, y_arr) in enumerate(zip(timestamps_list, labels_list)):
+        t = np.asarray(t_arr, dtype=float)
+        y = np.asarray(y_arr, dtype=int)
+
+        if t.ndim != 1 or y.ndim != 1:
+            raise ValueError(f"Recording {rec_idx}: timestamps and labels must be 1D arrays")
+        if t.shape[0] != y.shape[0]:
+            raise ValueError(f"Recording {rec_idx}: timestamps and labels length mismatch")
+        if np.any(np.diff(t) <= 0):
+            raise ValueError(f"Recording {rec_idx}: timestamps must be strictly increasing")
+
+        n = len(y)
+        i = 0
+        while i < n:
+            if y[i] == 1:
+                start = i
+                while i + 1 < n and y[i + 1] == 1:
+                    i += 1
+                end = i
+                duration_ms = (t[end] - t[start]) * 1000.0
+                all_durations_ms.append(duration_ms)
+            i += 1
+
+    # --- Plot combined distribution ---
+    plt.figure()
+    if len(all_durations_ms) > 0:
+        plt.hist(all_durations_ms, bins="auto", edgecolor="black", alpha=0.85)
+        if threshold_ms is not None:
+            plt.axvline(threshold_ms, linestyle="--", linewidth=2)
+        plt.title("Distribution of gaze shift durations across recordings")
+        plt.xlabel("Duration (ms)")
+        plt.ylabel("Count")
+        plt.tight_layout()
+    else:
+        plt.text(0.5, 0.5, "No segments with label=1 found in any recording",
+                 ha="center", va="center", transform=plt.gca().transAxes)
+        plt.axis("off")
+        plt.title("Distribution of label=1 segment durations across recordings")
+        plt.tight_layout()
+    
+    plt.savefig('distribution', dpi=300)
+    plt.close()
+    return np.array(all_durations_ms, dtype=float)

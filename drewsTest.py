@@ -31,49 +31,62 @@ from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
 from modules.methods.ranking.rankingMethod import runRankingMethod
 from modules.methods.ranking.dataReader import readData as rankingReader
+from modules.utils import plot_one_segment_durations_across_recordings
 from config import INP_DIR, LABELER, DATASET, OEMC_MODEL, DATASET
 
 if DATASET == "DrewsDynamic":
     LABELER = None
 
-gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
-_ , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False, incTimes=True)
-preds = runRankingMethod(gazeData, videosList, frameTimes, directories)
-preds = [ (arr > 0).astype(int) for arr in preds ]  #threshold x>0 is set to 1
-evaluate([(runRankingMethod, {})], preds, labels)
+METHOD_TO_RUN = "mw"
 
-data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False, incTimes=True)
-preds = runMovingWindow(data, 6000, 2.7)
-evaluate([(runMovingWindow, {})], preds, labels)
+##visualize the distribution of the saccades left
+# gazeData , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False, incTimes=True)
+# col0_list = [m[:, 0] for m in gazeData]
+# timesAll = np.array(col0_list, dtype=object)
+# plot_one_segment_durations_across_recordings(timesAll, labels)
+
+if METHOD_TO_RUN == "ixt":
+    data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False)
+
+    methods = [
+        (ivt, {"v_threshold": 2.0, "min_fixation_duration_ms":15}),
+        (idt, {"d_threshold": 20,  "min_duration_ms":5})
+    ]
+    evaluate(methods, data, labels)
+
+elif METHOD_TO_RUN=="ranking":
+    gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
+    _ , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False, incTimes=True)
+    preds = runRankingMethod(gazeData, videosList, frameTimes, directories)
+    preds = [ (arr > 0).astype(int) for arr in preds ]  #threshold x>0 is set to 1
+    evaluate([(runRankingMethod, {})], preds, labels)
+
+elif METHOD_TO_RUN == "mw":
+    data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False, incTimes=True)
+    preds = runMovingWindow(data, 6000, 2.7)
+    evaluate([(runMovingWindow, {})], preds, labels)
+
+elif METHOD_TO_RUN == "oemc":
+    recs = listRecNames(INP_DIR)
+    preds, gts = runOEMC(recs, INP_DIR, DATASET, OEMC_MODEL)
+    evaluate([(runOEMC, {})], preds, gts)
 
 
-data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False)
-
-methods = [
-    (ivt, {"v_threshold": 2.0, "min_fixation_duration_ms":15}),
-    (idt, {"d_threshold": 26,  "min_duration_ms":15})
-]
-evaluate(methods, data, labels)
-
+elif METHOD_TO_RUN == " gazeNet":
+    ##### gazeNet
+    # Warning: SCORES ARE ABOUT 1%
+    data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False)
+    df = converDataToGazeNet(data, labels, dummy=False)
+    evaluate([(gazeNet, {})], df, labels)
 
 
-recs = listRecNames(INP_DIR)
-preds, gts = runOEMC(recs, INP_DIR, DATASET, OEMC_MODEL)
-evaluate([(runOEMC, {})], preds, gts)
+elif METHOD_TO_RUN == "ace-dnv":
+
+    #### ACE-DNV
+    # 1- run video2frames.py to get the video frames
+    # 2- either run DF-VO, or move the outputs of DF-VO from our published dataset to the folders
+    ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)       #ACE-DNV's dataloader
+    evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
 
 
-
-##### gazeNet
-# Warning: SCORES ARE ABOUT 1%
-data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False)
-df = converDataToGazeNet(data, labels, dummy=False)
-evaluate([(gazeNet, {})], df, labels)
-
-
-
-#### ACE-DNV
-# 1- run video2frames.py to get the video frames
-# 2- either run DF-VO, or move the outputs of DF-VO from our published dataset to the folders
-ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)       #ACE-DNV's dataloader
-evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
-
+print ("execution finished")

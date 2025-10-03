@@ -36,9 +36,15 @@ from config import INP_DIR, LABELER, OEMC_MODEL, DATASET
 # START UNDER DEV.
 
 # Ranking Method
-gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
-runRankingMethod(gazeData, videosList, frameTimes, directories)
 
+data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
+
+#IVT
+methods = [
+    # (idt, {"threshold": 15}),
+    (ivt, {"v_threshold": 1.2, "min_fixation_duration_ms":0})
+]
+evaluate(methods, data, labels)
 
 ### Main body of execution
 # Note: Different methods have different dataloaders or different settings for reading
@@ -79,9 +85,8 @@ evaluate([(gazeNet, {})], df, labels)
 
 
 # Ranking Method
-# TODO: investigate the mismatch why blinks are slightly different in adhoc results and manual labels
-adhoc_res, lbls = rankingPreCompPred()
-evaluate([(rankingPreCompPred, {"onlyEM": True})], adhoc_res, lbls)
+gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
+runRankingMethod(gazeData, videosList, frameTimes, directories)
 # print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
 
 

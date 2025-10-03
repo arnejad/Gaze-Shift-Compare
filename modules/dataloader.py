@@ -4,6 +4,7 @@ from os.path import isfile, join, isdir
 import numpy as np
 import pandas as pd
 from modules.car2spher import calc as pix2degConv
+from modules.utils import find_long_saccade_segments
 
 from config import INP_DIR, CLOUD_FORMAT, VIDEO_SIZE, DATASET, LABELER
 
@@ -82,6 +83,8 @@ def _load_VU(inputDir, labeler, remove_blinks=False, degConv=False, incTimes=Fal
 
         if remove_blinks:
             rmidcs = np.where(labels == -1) # remove blinks
+            # labels[rmidcs] = 0
+
             labels = np.delete(labels, rmidcs)
             gazes = np.delete(gazes, rmidcs, axis=0)
 
@@ -92,7 +95,7 @@ def _load_VU(inputDir, labeler, remove_blinks=False, degConv=False, incTimes=Fal
         
     return ds_x, ds_y
 
-def _load_DrewsDynamic(inputDir, degConv=False, incTimes=False):
+def _load_DrewsDynamic(inputDir, remove_blinks=False, degConv=False, incTimes=False):
     recs = [f for f in listdir(inputDir) if isdir(join(inputDir, f))]
     ds_x = []
     ds_y = []
@@ -133,12 +136,13 @@ def _load_DrewsDynamic(inputDir, degConv=False, incTimes=False):
         labels = np.load(directory+'/gt_labels_toggled.npy')
         labels = np.array(labels, dtype=int)
         
-        # if remove_blinks:
-        #     rmidcs = np.where(labels == -1) # remove blinks
-        #     labels = np.delete(labels, rmidcs)
-        #     gazes = np.delete(gazes, rmidcs, axis=0)
+        lsidcs = find_long_saccade_segments(gazeTimes, labels)
+        labels[lsidcs] = 0
+        if remove_blinks:
+            labels = np.delete(labels, lsidcs)
+            gazes = np.delete(gazes, lsidcs, axis=0)
 
-        # # np.savetxt( r + '_gazeMatch.csv', gazeMatch, delimiter=',')
+        # np.savetxt( r + '_gazeMatch.csv', gazeMatch, delimiter=',')
 
         ds_x.append(gazes)
         ds_y.append(labels)
@@ -153,7 +157,7 @@ def dataloader(dataset, inputDir, labeler,remove_blinks=True, degConv=False, inc
     if dataset == "VU":
         return _load_VU(inputDir, labeler, remove_blinks, degConv, incTimes)
     elif dataset == "DrewsDynamic":
-        return _load_DrewsDynamic(inputDir, degConv=degConv, incTimes=incTimes)
+        return _load_DrewsDynamic(inputDir, remove_blinks=remove_blinks, degConv=degConv, incTimes=incTimes)
     else: raise Exception("The selected dataset is not correct")
 
 

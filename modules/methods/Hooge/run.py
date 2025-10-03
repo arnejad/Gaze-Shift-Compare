@@ -10,13 +10,21 @@ from modules.utils import cacheLoadedData
 from config import MATLAB_PATH, INP_DIR
 
 def runMovingWindow(data, windowSize, lmda): # last param is lambda (the word is reserved in python)
+    # moving window impelementation is provided by the authors in MATLAB.
+    # to get the results from their code, a process runs their matlab code, it saved the results, and python reads the 
+    #    prediction saved on the disk by the matlab script
 
     print("Executing Moving Window Fixation Detection...")
     cacheLoadedData(data)      
     env = os.environ.copy()
+    
+    #TODO: change to absoulte path from the os
 
-    cache_dir = "/home/ash/projects/Wild-Saccade-Detection-Comparison/degs_cached"
-    arg_string = f"/home/ash/projects/Wild-Saccade-Detection-Comparison/degs_cached {windowSize} {lmda}"
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.dirname(script_path)
+
+    cache_dir = os.path.join(script_dir, "degs_cached")
+    arg_string = f"{cache_dir} {windowSize} {lmda}"
     env["MATLAB_ARGS"] = arg_string
     script_directory = "modules/methods/Hooge/"
     script_name = "calculateSaccades"
@@ -36,7 +44,9 @@ def runMovingWindow(data, windowSize, lmda): # last param is lambda (the word is
     shutil.rmtree('degs_cached/results')
 
     if len(data) > 30:
-        return predsAll[0]    
+        return predsAll[0]
+    elif len(data) ==1:
+        return predsAll[0]
     else:
         return predsAll
     

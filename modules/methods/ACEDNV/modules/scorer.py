@@ -1,9 +1,34 @@
 from sklearn import metrics
 import numpy as np
 import matplotlib.pyplot as plt
+# from modules.utils import printStats
 
 
+def printStats(pred, gt):
+    """
+    pred: 1D array-like, predicted labels (0 or 1)
+    gt:   1D array-like, ground truth labels (0 or 1)
+    """
+    pred = np.array(pred)
+    gt = np.array(gt)
 
+    # Ensure same length
+    if pred.shape != gt.shape:
+        raise ValueError("Prediction and ground truth must have the same shape.")
+
+    TP = np.sum((pred == 1) & (gt == 1))
+    FP = np.sum((pred == 1) & (gt == 0))
+    FN = np.sum((pred == 0) & (gt == 1))
+
+    # Precision, Recall, F1 (with safe division)
+    precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+    recall    = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+    f1_score  = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
+    print(f"TP: {TP}, FP: {FP}, FN: {FN}")
+    print(f"Precision: {precision:.3f}, Recall: {recall:.3f}, F1-score: {f1_score:.3f}")
+
+    return TP, FP, FN, f1_score
 # function extracted from  https://github.com/elmadjian/OEMC 
 
 def count_event(preds, gt):   
@@ -69,7 +94,10 @@ def print_results(sample_preds, sample_gt, event_preds, event_gt, printBool=True
     return f1_s["1"]["f1-score"], f1_e["1"]["f1-score"], cm_s, cm_e
 
 def score(sample_preds, sample_gt, printBool):
+    
+    # printStats(sample_preds, sample_gt)
     event_preds, event_gt = count_event(sample_preds, sample_gt)
+    # printStats(event_preds, event_gt)
     f1_s, f1_e, cm_s, cm_e = print_results(sample_preds, sample_gt, event_preds, event_gt, printBool)
     return f1_s, f1_e, cm_s, cm_e
 

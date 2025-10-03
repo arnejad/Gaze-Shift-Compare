@@ -298,7 +298,7 @@ def runRankingMethod(gazeData, videosList, frameTimes, directories):
     ##
     preds_all = []
     for i in range(0, len(gazeData)):
-        outputFile = os.path.join(directories[i], "ranking_res.txt")
+        outputFile = os.path.join(directories[i], "ranking_res_removedBlinks_100ms.txt")
         if os.path.exists(outputFile): 
             print(outputFile+" already exists, loading saved file...")
             preds = np.loadtxt(outputFile)

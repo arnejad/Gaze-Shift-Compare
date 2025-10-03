@@ -134,14 +134,14 @@ if singleSampleBothLabler:
 else:
     # data, labels = dataloader("EB", remove_blinks=True, degConv=False)
     incTimes= (method=="mw")
-    data, labels = dataloader("DrewsDynamic","/home/ash/temp/drews-dynamic", None, remove_blinks=True, degConv=False, incTimes=incTimes)
+    data, labels = dataloader("DrewsDynamic",INP_DIR, None, remove_blinks=True, degConv=False, incTimes=incTimes)
     data = data[:4]
     labels = labels[:4] 
 
 
 if method=="idt":
     # best_thr_2, best_score_2 = optimize_threshold(idt, np.arange(0, 60, 1), data, [sub_list[1:-1] for sub_list in labels], "idt")
-    optimizeDoubleThreshold(idt, np.arange(20, 40, 1), np.arange(0, 101, 25), data, [sub_list[1:-1] for sub_list in labels], "idt")
+    optimizeDoubleThreshold(idt, np.arange(10, 40, 5), np.arange(0, 101, 25), data, [sub_list[1:-1] for sub_list in labels], "idt")
     # print("idt 2 best:", best_thr_2, best_score_2)
 
 elif method=="ivt":
@@ -152,5 +152,5 @@ elif method=="ivt":
     # print("ivt 1 best:", best_thr_1, best_score_1)
 elif method=="mw":
     print("s")
-    optimizeDoubleThreshold(runMovingWindow, np.arange(3000, 10000, 1000), np.arange(1, 5.5, 0.5), data, labels, "mw")
+    optimizeDoubleThreshold(runMovingWindow, np.arange(1000, 7000, 1000), np.arange(2, 5.5, 0.5), data, labels, "mw")
     # optimizeDoubleThreshold(runSlidingWindow, np.arange(8000, 9001, 1000), np.arange(2.5, 3.5, 0.5), data, labels)
