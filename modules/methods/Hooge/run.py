@@ -4,6 +4,7 @@ import shutil
 
 from os import listdir
 from os.path import join, isdir
+import sys
 import numpy as np
 
 from modules.utils import cacheLoadedData
@@ -20,10 +21,10 @@ def runMovingWindow(data, windowSize, lmda): # last param is lambda (the word is
     
     #TODO: change to absoulte path from the os
 
-    script_path = os.path.abspath(__file__)
-    script_dir = os.path.dirname(script_path)
+    main_script_path = os.path.abspath(sys.argv[0])
+    main_script_dir = os.path.dirname(main_script_path)
 
-    cache_dir = os.path.join(script_dir, "degs_cached")
+    cache_dir = os.path.join(main_script_dir, "degs_cached")
     arg_string = f"{cache_dir} {windowSize} {lmda}"
     env["MATLAB_ARGS"] = arg_string
     script_directory = "modules/methods/Hooge/"

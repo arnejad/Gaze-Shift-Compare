@@ -4,6 +4,8 @@ import numpy as np
 import scipy.io
 from modules.timeMatcher import timeMatcher
 from modules.PatchSimNet import pred_all as patchNet_predAll
+from modules.utils import find_long_saccade_segments
+
 from modules.methods.ACEDNV.config import OUT_DIR, VIDEO_SIZE, CLOUD_FORMAT, ACTIVITY_NUM, ACIVITY_NAMES
 
 from modules.preprocess import preprocessor
@@ -96,7 +98,7 @@ def readDataset(inputDir, dataset, labeler):
             T = tempRead[:, 0]
 
             labels = np.array(np.genfromtxt(join(directory, r+"_manual coding_"+labeler), delimiter=' ')[:,1], dtype=int)
-            # check if imu data exists.
+
             gazeMatch, TMatch, frames, lblMatch = timeMatcher(timestamps, gazes, labels)
 
             # imuMatch = np.array(timeMatcher(timestamps, imu))
@@ -130,11 +132,6 @@ def readDataset(inputDir, dataset, labeler):
         ds_y = []
 
         for r in recs:
-            # r = "p34"
-            # r = '3'
-            
-            # if r in ["F", "I", "J", "K", "L"]:
-                # continue
 
             print("reading data recordng from " + r)
             directory = join(inputDir, r)
@@ -179,7 +176,9 @@ def readDataset(inputDir, dataset, labeler):
 
             labels = np.array(np.load(directory+'/gt_labels_toggled.npy'), dtype=int)
 
-            # check if imu data exists.
+            lsidcs = find_long_saccade_segments(T, labels)
+            labels[lsidcs] = -1
+
             gazeMatch, TMatch, frames, lblMatch = timeMatcher(timestamps, np.column_stack((T, gazes)), labels)
             
             # np.savetxt(directory+'/world image times.txt', simTime2FrameTime(TMatch), fmt="%.10f")

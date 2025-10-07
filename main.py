@@ -35,7 +35,10 @@ from config import INP_DIR, LABELER, OEMC_MODEL, DATASET
 
 # START UNDER DEV.
 
-# Ranking Method
+
+ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)        #ACE-DNV's dataloader
+evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
+
 
 data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
 

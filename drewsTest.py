@@ -37,9 +37,9 @@ from config import INP_DIR, LABELER, DATASET, OEMC_MODEL, DATASET
 if DATASET == "DrewsDynamic":
     LABELER = None
 
-METHOD_TO_RUN = "mw"
+METHOD_TO_RUN = "ace-dnv"
 
-##visualize the distribution of the saccades left
+## visualize the distribution of the saccades left
 # gazeData , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False, incTimes=True)
 # col0_list = [m[:, 0] for m in gazeData]
 # timesAll = np.array(col0_list, dtype=object)
@@ -58,12 +58,12 @@ elif METHOD_TO_RUN=="ranking":
     gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
     _ , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False, incTimes=True)
     preds = runRankingMethod(gazeData, videosList, frameTimes, directories)
-    preds = [ (arr > 0).astype(int) for arr in preds ]  #threshold x>0 is set to 1
+    preds = [(arr > 0).astype(int) for arr in preds]  #threshold x>0 is set to 1
     evaluate([(runRankingMethod, {})], preds, labels)
 
 elif METHOD_TO_RUN == "mw":
     data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False, incTimes=True)
-    preds = runMovingWindow(data, 6000, 2.7)
+    preds = runMovingWindow(data, 2000, 3)
     evaluate([(runMovingWindow, {})], preds, labels)
 
 elif METHOD_TO_RUN == "oemc":
@@ -72,7 +72,7 @@ elif METHOD_TO_RUN == "oemc":
     evaluate([(runOEMC, {})], preds, gts)
 
 
-elif METHOD_TO_RUN == " gazeNet":
+elif METHOD_TO_RUN == "gazeNet":
     ##### gazeNet
     # Warning: SCORES ARE ABOUT 1%
     data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False)

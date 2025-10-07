@@ -172,9 +172,6 @@ def train_OEMC(trainRecs, isolatedParticipant):
         _, _, trX, trY = next(fold)
 
         
-
-        # trX, trX_val = trX[:int(len(trX)*0.9)], trX[int(len(trX)*0.9):]
-        # trY, trY_val = trY[:int(len(trY)*0.9)], trY[int(len(trY)*0.9):] 
         train_size = len(trY)
         # val_size   = len(trY_val)
         n_classes  = 2

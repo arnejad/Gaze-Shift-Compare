@@ -5,7 +5,7 @@ import os
 import re
 import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from modules.car2spher import calc as pix2degConv
+from modules.utils import find_long_saccade_segments
 from config import VIDEO_SIZE
 
 class Preprocessor():
@@ -42,6 +42,8 @@ class Preprocessor():
             outfile = os.path.join(out_path, r, r)
             print(f'>>> extracting features from {src}...')
             data = self.load_file(os.path.join(base_path, r), dataset, labeler)
+            # lsidcs = find_long_saccade_segments(data[:,0], data[:,3])
+            # data[lsidcs,3] = -1
             # data[:,1:3] = pix2degConv(data[:,1:3])
             data[:,1] = data[:,1]/VIDEO_SIZE[0] #normalize (added to this version for our data)
             data[:,2] = data[:,2]/VIDEO_SIZE[1]

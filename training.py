@@ -34,7 +34,7 @@ from modules.utils import outputPerformance
 from config import INP_DIR, LABELER, DATASET
 
 
-TO_TRAIN = "GazeNet"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
+TO_TRAIN = "OEMC"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
 
 use_ceil=False
 
