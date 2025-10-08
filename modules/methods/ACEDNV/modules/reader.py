@@ -153,11 +153,16 @@ def readDataset(inputDir, dataset, labeler):
             else:
                 raise Exception("Could not find gaze.csv or gaze_positions.csv file")
 
-            if 'time_optic_flow.npy' in subFiles:
+            if 'time_scene_camera.npy' in subFiles:
+                timestamps = np.load(directory+'/time_scene_camera.npy')
+            elif 'time_visual_similarity.npy' in subFiles:
                 timestamps = np.load(directory+'/time_visual_similarity.npy')
+            
+            
             else:
                 raise Exception("Could not find the world_timestamps.csv file")
-
+            
+            # np.savetxt(directory+'/time_scene_camera.txt', timestamps)
 
             if 'time_gaze.npy' in subFiles:
                 T = np.load(directory+'/time_gaze.npy')

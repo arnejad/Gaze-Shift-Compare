@@ -39,7 +39,8 @@ def readData(inputDir, dataset):
             
             
 
-        times = np.loadtxt(f'{directory}/world image times.txt')
+        # times = np.loadtxt(f'{directory}/world image times.txt')
+        times = np.load(f'{directory}/time_scene_camera.npy')
         ds_t.append(times)
 
 

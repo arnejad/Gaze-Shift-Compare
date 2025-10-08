@@ -95,9 +95,9 @@ def print_results(sample_preds, sample_gt, event_preds, event_gt, printBool=True
 
 def score(sample_preds, sample_gt, printBool):
     
-    printStats(sample_preds, sample_gt)
+    # printStats(sample_preds, sample_gt)
     event_preds, event_gt = count_event(sample_preds, sample_gt)
-    printStats(event_preds, event_gt)
+    # printStats(event_preds, event_gt)
     f1_s, f1_e, cm_s, cm_e = print_results(sample_preds, sample_gt, event_preds, event_gt, printBool)
     return f1_s, f1_e, cm_s, cm_e
 

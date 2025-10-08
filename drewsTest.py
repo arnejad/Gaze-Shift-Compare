@@ -37,9 +37,9 @@ from config import INP_DIR, LABELER, DATASET, OEMC_MODEL, DATASET
 if DATASET == "DrewsDynamic":
     LABELER = None
 
-METHOD_TO_RUN = "ace-dnv"
+METHOD_TO_RUN = "gazeNet"
 
-## visualize the distribution of the saccades left
+# visualize the distribution of the saccades left
 # gazeData , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False, incTimes=True)
 # col0_list = [m[:, 0] for m in gazeData]
 # timesAll = np.array(col0_list, dtype=object)

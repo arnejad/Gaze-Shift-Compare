@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 # root directory where all your folders are
-root_dir = "/media/ash/Expansion/data/drews-dynamic"
+root_dir = "/media/ash/Expansion/data/drews-dynamic-removed"
 
 for folder in os.listdir(root_dir):
     folder_path = os.path.join(root_dir, folder)
