@@ -124,7 +124,7 @@ def readDataset(inputDir, dataset, labeler):
             # break
 
     
-    elif dataset == "DrewsDynamic":
+    elif dataset == "D&D":
         
         # list the folders in the directory
         recs = [f for f in listdir(inputDir) if isdir(join(inputDir, f))]

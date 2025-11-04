@@ -16,31 +16,25 @@ sys.path.insert(0, inner_project_path)
 from modules.methods.ACEDNV.modules.scorer import score
 
 ### Load Methods
-from modules.methods.IVT import ivt
-from modules.methods.IDT import idt
 from modules.methods.gazeNet.myTrain import main as gazeNet_train
 from modules.methods.gazeNet.myRun import predict_LOO as gazeNet_predict
 from modules.methods.ACEDNV.modules.eventDetector import ACEDNV_train, ACEDNV
 from modules.methods.ACEDNV.modules.reader import readDataset as aceReader
-from modules.methods.ranking.resReader import ranking as rankingPreCompPred
-from modules.methods.OEMC.online_sim import OnlineSimulator as OEMC_OnlineSimulator
-from modules.methods.OEMC.argsProducer import produceArgs as OEMC_ArgsReplicator
-from modules.methods.OEMC.preprocessor import Preprocessor as oemc_preprocessor
 from modules.methods.OEMC.myRun import runOEMC
 from modules.methods.OEMC.myTrain import train_OEMC
-from modules.utils import evaluate
-from modules.methods.Hooge.run import runMovingWindow
 from modules.utils import outputPerformance
 from config import INP_DIR, LABELER, DATASET
 
+DATASETS = ["VU-EB", "VU-AG", "D&D"]
 
-TO_TRAIN = "OEMC"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
+METHOD_TO_TRAIN = "OEMC"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
 
 use_ceil=False
 
+
 #ACE-DNV
-if TO_TRAIN == "ACE-DNV":
-    model_dir = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift-drews.pkl'
+if METHOD_TO_TRAIN == "ACE-DNV":
+    model_dir = '/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/ACEDNV/model-zoo/gaze-shift.pkl'
     ds_x, ds_y = aceReader(INP_DIR, DATASET, None)       #ACE-DNV's dataloader
 
     n = len(ds_y)
@@ -90,7 +84,7 @@ if TO_TRAIN == "ACE-DNV":
 
 #GazeNet
 
-if TO_TRAIN == "GazeNet":
+if METHOD_TO_TRAIN == "GazeNet":
     data, labels = dataloader(DATASET, INP_DIR, None, remove_blinks=False, degConv=False)
 
 
@@ -142,7 +136,7 @@ if TO_TRAIN == "GazeNet":
 
 
 #OEMC
-if TO_TRAIN == "OEMC":
+if METHOD_TO_TRAIN == "OEMC":
     f1s_m=[] #all f1 scores obtained in for this threshold on all recording
     f1e_m=[]
     ash_scores_m = []

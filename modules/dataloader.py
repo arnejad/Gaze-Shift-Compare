@@ -156,7 +156,7 @@ def _load_GiW():
 def dataloader(dataset, inputDir, labeler,remove_blinks=True, degConv=False, incTimes=False):
     if dataset == "VU":
         return _load_VU(inputDir, labeler, remove_blinks, degConv, incTimes)
-    elif dataset == "DrewsDynamic":
+    elif dataset == "D&D":
         return _load_DrewsDynamic(inputDir, remove_blinks=remove_blinks, degConv=degConv, incTimes=incTimes)
     else: raise Exception("The selected dataset is not correct")
 
