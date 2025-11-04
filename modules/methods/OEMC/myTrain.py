@@ -153,17 +153,19 @@ def get_best_model(model, best_model, score, best_score):
 
 
 
-def train_OEMC(trainRecs, isolatedParticipant):
+def train_OEMC(trainRecs, isolatedParticipant, dataset, labeler, inp_dir):
     pretrained_path = OEMC_MODEL
     set_randomness(0)
-    args = OEMC_ArgsReplicator()
+    args = OEMC_ArgsReplicator(dataset)
     folds = args.folds
     print("Loading data...")
     dataset = args.dataset
     freq = ET_SAMPLING_RATE
     pproc = preprocessor.Preprocessor(window_length=1,offset=args.offset,
                                       stride=args.strides,frequency=freq)
-    # pproc.process_folder(INP_DIR, 'cached/VU', LABELER)
+    
+    if "VU" in dataset:
+        pproc.process_folder(inp_dir, dataset, 'cached/', labeler)
     
     fold = pproc.load_data_k_fold('cached/'+pproc.append_options(dataset), trainRecs, folds=folds)
 

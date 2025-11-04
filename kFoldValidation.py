@@ -25,9 +25,9 @@ from modules.methods.OEMC.myTrain import train_OEMC
 from modules.utils import outputPerformance
 from config import INP_DIR, LABELER, DATASET
 
-DATASETS = ["VU-EB", "VU-AG", "D&D"]
 
-METHOD_TO_TRAIN = "OEMC"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
+
+METHOD_TO_TRAIN = "GazeNet"   #choose between "OEMC", "ACE-DNV", and "GazeNet"
 
 use_ceil=False
 
@@ -155,7 +155,7 @@ if METHOD_TO_TRAIN == "OEMC":
         # end = start + test_size
         train_recs = recs[:start] + recs[end:]
         test_recs = recs[start:end]
-        train_OEMC(train_recs, str(start))
+        # train_OEMC(train_recs, str(start), DATASET, LABELER, INP_DIR)
         preds, gts = runOEMC(test_recs, INP_DIR, DATASET, 'modules/methods/OEMC/models/tcn_model_'+DATASET+'_BATCH-2048_LOO-' + str(start) + '.pt', retrained=True)
 
         preds = np.concatenate(preds)

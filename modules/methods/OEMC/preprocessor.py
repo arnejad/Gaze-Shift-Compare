@@ -26,6 +26,11 @@ class Preprocessor():
         dataset. The processed files are stored in an
         optimized format for fast I/O
         '''
+        if "VU" in dataset:
+            out_path = out_path+"VU"
+        elif dataset=="D&D":
+            out_path = out_path+"DrewsDynamic"
+        
         out_path = self.append_options(out_path)
         recs = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
 

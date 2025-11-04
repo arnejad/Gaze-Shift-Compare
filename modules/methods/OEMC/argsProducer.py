@@ -1,13 +1,15 @@
 import argparse
 
 
-def produceArgs():
+def produceArgs(dataset):
     
+    if dataset == "D&D": dataset="DrewsDynamic"
+
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-d',
                            '--dataset',
                            required=False,
-                           default= 'DrewsDynamic',
+                           default= dataset,
                            choices=['hmr', 'gazecom', 'VU', 'DrewsDynamic'])
     argparser.add_argument('-m',
                            '--model',

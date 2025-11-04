@@ -82,7 +82,7 @@ if METHOD_TO_TRAIN == "ACE-DNV":
            
             # cm_s_all = (cm_s_i/(t_i+1))
             # cm_e_all = (cm_e_i/(t_i+1))
-            outputPerformance("ACEDNV-trained-"+str(LABELERS[i])+"-"+str(LABELERS[j]), f1s_m, f1e_m, cm_s_all, cm_e_all)
+            outputPerformance(METHOD_TO_TRAIN+"-trained-"+str(LABELERS[i])+"-"+str(LABELERS[j]), f1s_m, f1e_m, cm_s_all, cm_e_all)
 
 
 #GazeNet
@@ -108,7 +108,7 @@ if METHOD_TO_TRAIN == "GazeNet":
 
             f1s_m, f1e_m, cm_s_all, cm_e_all = score(preds, gts, printBool=False)
 
-            outputPerformance("GazeNet-trained-"+str(LABELERS[i])+"-"+str(LABELERS[j]), f1s_m, f1e_m, cm_s_all, cm_e_all)
+            outputPerformance(METHOD_TO_TRAIN+"-trained-"+str(LABELERS[i])+"-"+str(LABELERS[j]), f1s_m, f1e_m, cm_s_all, cm_e_all)
 
 
 #OEMC
@@ -119,19 +119,24 @@ if METHOD_TO_TRAIN == "OEMC":
     for i, ds_train in enumerate(DATASETS):
 
         train_recs = listRecNames(DATASET_DIRS[i])
-        train_OEMC(train_recs, str(LABELERS[i]))
+        train_OEMC(train_recs, str(LABELERS[i]), ds_train, LABELERS[i], DATASET_DIRS[i])
         
+        if i == 0: continue
+
         for j, ds_test in enumerate(DATASETS):
-    
+            # if ds_test == "VU": continue
+            print("Train set: "+ds_train+"-"+str(LABELERS[i])+"  Test set: "+ds_test+"-"+str(LABELERS[j]))
+
             test_recs = listRecNames(DATASET_DIRS[j])
-            preds, gts = runOEMC(test_recs, INP_DIR, DATASET, 'modules/methods/OEMC/models/tcn_model_'+DATASET+'_BATCH-2048_LOO-' + str(LABELERS[i]) + '.pt', retrained=True)
+            if ds_test == "D&D": ds_test = "DrewsDynamic"
+            preds, gts = runOEMC(test_recs, DATASET_DIRS[j], ds_test, 'modules/methods/OEMC/models/tcn_model_'+ds_train+'_BATCH-2048_LOO-' + str(LABELERS[i]) + '.pt', retrained=True)
 
             preds = np.concatenate(preds)
             gts = np.concatenate(gts)
 
             f1s_m, f1e_m, cm_s_all, cm_e_all = score(preds, gts, printBool=False)
 
-            outputPerformance("GazeNet-trained-"+str(LABELERS[i])+"-"+str(LABELERS[j]), f1s_m, f1e_m, cm_s_all, cm_e_all)
+            outputPerformance(METHOD_TO_TRAIN+"-trained-"+str(LABELERS[i])+"-"+str(LABELERS[j]), f1s_m, f1e_m, cm_s_all, cm_e_all)
 
 
 
