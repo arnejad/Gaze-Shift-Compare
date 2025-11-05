@@ -85,7 +85,7 @@ if METHOD_TO_TRAIN == "ACE-DNV":
 #GazeNet
 
 if METHOD_TO_TRAIN == "GazeNet":
-    data, labels = dataloader(DATASET, INP_DIR, None, remove_blinks=False, degConv=False)
+    data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False)
 
 
 
@@ -114,12 +114,12 @@ if METHOD_TO_TRAIN == "GazeNet":
         del y_train [start:end]
         
 
-        train_df = converDataToGazeNet(x_train, y_train, dummy=False, forTrain=True)
+        train_df = converDataToGazeNet(data, labels, dummy=False, forTrain=True)
         test_df =  converDataToGazeNet(x_test, y_test, dummy=False, forTrain=True)
 
         gazeNet_train(train_df, str(start)+".pt", model_dir=modelDir, num_epochs=15, num_workers=2, seed=123)
 
-        preds, gts = gazeNet_predict(os.path.join(modelDir, str(start)+".pt"), test_df)
+        preds, gts = gazeNet_predict(os.path.join(modelDir, str(start)+".pt"), train_df)
 
         preds = np.concatenate(preds)
         gts = np.concatenate(gts)

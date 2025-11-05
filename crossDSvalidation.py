@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import sys
-import math
+import random
 
 from modules.dataloader import dataloader, converDataToGazeNet, listRecNames
 
@@ -90,17 +90,30 @@ if METHOD_TO_TRAIN == "ACE-DNV":
 if METHOD_TO_TRAIN == "GazeNet":
 
     modelDir = "/home/ash/projects/Wild-Saccade-Detection-Comparison/modules/methods/gazeNet/logdir/my_model/"
-    x_train, y_train = dataloader(ds_train, DATASET_DIRS[i], LABELERS[i], remove_blinks=False, degConv=False)
-    x_train = converDataToGazeNet(x_train, y_train, dummy=False, forTrain=True)
-    gazeNet_train(x_train, str(LABELERS[i])+".pt", model_dir=modelDir, num_epochs=15, num_workers=2, seed=123)
 
     for i, ds_train in enumerate(DATASETS):
+        # if LABELERS[i]=="EB": continue
+
+        x_train, y_train = dataloader(ds_train, DATASET_DIRS[i], LABELERS[i], remove_blinks=False, degConv=False)
+
+        if "VU" in ds_train: 
+            indices = list(range(len(x_train)))
+            random.shuffle(indices)
+            # indices=[2,3,0,4,5,1]
+            x_train = [x_train[i] for i in indices]
+            y_train = [y_train[i] for i in indices]
+
+        x_train = converDataToGazeNet(x_train, y_train, dummy=False, forTrain=True)
+        gazeNet_train(x_train, str(LABELERS[i])+".pt", model_dir=modelDir, num_epochs=15, num_workers=2, seed=123)
+
         for j, ds_test in enumerate(DATASETS):
             print("Train set: "+ds_train+"-"+str(LABELERS[i])+"  Test set: "+ds_test+"-"+str(LABELERS[j]))
             
             x_test, y_test = dataloader(ds_test, DATASET_DIRS[j], LABELERS[j], remove_blinks=False, degConv=False) 
-            x_test =  converDataToGazeNet(x_test, y_test, dummy=False, forTrain=True)        
 
+            x_test =  converDataToGazeNet(x_test, y_test, dummy=False, forTrain=True)        
+            
+            
             preds, gts = gazeNet_predict(os.path.join(modelDir, str(LABELERS[i])+".pt"), x_test)
 
             preds = np.concatenate(preds)
@@ -117,18 +130,28 @@ if METHOD_TO_TRAIN == "OEMC":
     
     
     for i, ds_train in enumerate(DATASETS):
-
+        
+        if ds_train == "VU": continue
+        
         train_recs = listRecNames(DATASET_DIRS[i])
+        if "VU" in ds_train: 
+            indices = list(range(len(train_recs)))
+            random.shuffle(indices)
+            # indices=[2,3,0,4,5,1]
+            train_recs = [train_recs[i] for i in indices]
+
         train_OEMC(train_recs, str(LABELERS[i]), ds_train, LABELERS[i], DATASET_DIRS[i])
         
-        if i == 0: continue
-
+        # if i == 0: continue
+        
+            
         for j, ds_test in enumerate(DATASETS):
             # if ds_test == "VU": continue
             print("Train set: "+ds_train+"-"+str(LABELERS[i])+"  Test set: "+ds_test+"-"+str(LABELERS[j]))
 
             test_recs = listRecNames(DATASET_DIRS[j])
             if ds_test == "D&D": ds_test = "DrewsDynamic"
+            if ds_train == "D&D": ds_train = "DrewsDynamic"
             preds, gts = runOEMC(test_recs, DATASET_DIRS[j], ds_test, 'modules/methods/OEMC/models/tcn_model_'+ds_train+'_BATCH-2048_LOO-' + str(LABELERS[i]) + '.pt', retrained=True)
 
             preds = np.concatenate(preds)

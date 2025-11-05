@@ -1,8 +1,8 @@
 # INP_DIR = "/home/ash/projects/video_for_Ashkan/exports"
-# INP_DIR = '/media/ash/Expansion/data/Saccade-Detection-Methods'
-INP_DIR = "/media/ash/Expansion/data/drews-dynamic"
-DATASET = "DrewsDynamic"              #choose self collected data from Pupil Ivisible by "PI", or the one from Drews et al. (2024) by "DrewsDynamic"
-LABELER = "AG"              # choose betweem "EB" and "AG"
+INP_DIR = '/media/ash/Expansion/data/Saccade-Detection-Methods'
+# INP_DIR = "/media/ash/Expansion/data/drews-dynamic"
+DATASET = "VU"              #choose self collected data from Pupil Ivisible by "PI", or the one from Drews et al. (2024) by "DrewsDynamic"
+LABELER = "EB"              # choose betweem "EB" and "AG" and None
 
 CLOUD_FORMAT = False
 VIDEO_SIZE = [1080, 1088]   # [width, height]
