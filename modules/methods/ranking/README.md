@@ -81,7 +81,7 @@ When you have all the mentioned variable read from the dataset, either by our da
 preds = runRankingMethod(gazeData, videosList, frameTimes, fast=False)
 ```
 
-This primary function of Ranking method has an input `fast` that can be either set to `False` or `True`. Ranking method can take a long time because of the computations for the vide frame contents. By setting `fast` to `True` your will significantly increase the compuatation speed by slightly sacrificing the accuracy. This is done by using only the gaze probability for the gaze-shift detection without computing the visual scene probabilities.  
+This primary function of Ranking method has an input `fast` that can be either set to `False` or `True`. Ranking method can take a long time because of the computations for the video frame contents. By setting `fast` to `True` your will significantly increase the compuatation speed by slightly sacrificing the accuracy. This is done by using only the gaze probability for the gaze-shift detection without computing the visual scene probabilities.  
 
 The identified gaze-shifts/saccades will be labeled as 1.
 
