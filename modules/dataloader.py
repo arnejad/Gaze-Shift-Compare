@@ -71,15 +71,6 @@ def _load_VU(inputDir, labeler, remove_blinks=False, degConv=False, incTimes=Fal
 
         labels = np.array(np.genfromtxt(join(directory, r+"_manual coding_"+labeler), delimiter=' ')[:,1], dtype=int)
 
-        # T = tempRead[1:, 0] #extract the time points
-
-        # frames = tempRead[1:, 1] #extract the corresponding frame number for each timepoint
-        # frames -= np.min(frames) #set the starting times for the frames to start from 0
-
-        # #since each video frame can have multiple gaze locations, select one of them gaze locations
-        # frames, indcs = np.unique(frames, return_index=True)
-        # gazeMatch = gazes[indcs]
-        # # TMatch = T[indcs]
 
         if remove_blinks:
             rmidcs = np.where(labels == -1) # remove blinks

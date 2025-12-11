@@ -20,6 +20,8 @@ def readData(inputDir, dataset):
             gazeData = np.genfromtxt(directory+'/gaze.txt', delimiter=' ')
             ds_g.append(gazeData)
             videosList.append(directory+'/world.mp4')
+            times = np.loadtxt(f'{directory}/world image times.txt')
+            ds_t.append(times)
             
 
         elif dataset == "DrewsDynamic":
@@ -36,12 +38,14 @@ def readData(inputDir, dataset):
 
             ds_g.append(gazeData)
             videosList.append(directory+'/scene_camera.mp4')
+            times = np.load(f'{directory}/time_scene_camera.npy')
+            ds_t.append(times)
             
             
 
-        # times = np.loadtxt(f'{directory}/world image times.txt')
-        times = np.load(f'{directory}/time_scene_camera.npy')
-        ds_t.append(times)
+        
+        
+        
 
 
-    return ds_g, videosList, ds_t, directories
+    return ds_g, videosList, ds_t

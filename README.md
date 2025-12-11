@@ -1,5 +1,10 @@
 # Detecting Gaze Shifts of Moving Observers in Dynamic Environments
 
+
+<mark>If you are here to only use our **Ranking method**, you can find the step-by-step instruction here:</mark>
+
+
+
 Welcome to the official repository for our paper:
 “Detecting gaze shifts of moving observers in dynamic environments”
 submitted to Behavior Research Methods.

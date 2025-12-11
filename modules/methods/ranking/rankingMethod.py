@@ -26,19 +26,26 @@ check=100    # this is the size of the region used to match images at different 
 # the third input is the image times ('world image times.txt' file) also as a numpy array
 #
 
-def analyse_saccades(gazeData,file_with_images,imageTimes):
+def analyse_saccades(gazeData,file_with_images,imageTimes, fast):
     ## INPUT DATA STRUCTURE:
     # gazeData should be a 2D matrix, with four comlumns [gazeTimestamp, gaze_x, gaze_y, label]
     ##
     # evaluate gaze motion to estimate probability of being saccade
     p_eye,smoothX,smoothY=evaluateEyeVelocityAndAcceleration(gazeData)
+
+    if fast:
+         p_eye=find_saccades(gazeData[:,0],p_eye,smoothX,smoothY)
+         notBlinks=(gazeData[:,-1]!=-1)
+         gazeData[notBlinks,-1]=p_eye[notBlinks]
+         return p_eye
+    
     # evaluate gaze in image to estimate probability of being saccade
     p_image=evaluateImage(gazeData,file_with_images,imageTimes)
     # combine eye and image estimates to obtain probability of saccade considering both
     p_both=np.sqrt(p_eye*p_image)
     p_eye=find_saccades(gazeData[:,0],p_eye,smoothX,smoothY)
     p_both=find_saccades(gazeData[:,0],p_both,smoothX,smoothY)
-    # combine them to get vaues between 0 and 3
+    # combine them to get values between 0 and 3
     p_both=2*p_both+p_eye
     notBlinks=(gazeData[:,-1]!=-1)
     gazeData[notBlinks,-1]=p_both[notBlinks]
@@ -288,7 +295,7 @@ def expand_image_to_gaze_times(gazeData,imageData):
 
 
 # main function to call
-def runRankingMethod(gazeData, videosList, frameTimes, directories):
+def runRankingMethod(gazeData, videosList, frameTimes, fast=False):
 
     ### Input:
     #   gazeData: 3D array containing 2D numpy array columns: [gazeTime, gaze_x, gaze_y, blinkLables(0=normal, -1=saccade)]
@@ -296,18 +303,23 @@ def runRankingMethod(gazeData, videosList, frameTimes, directories):
     #   frameTimes: 2D array containing 1D numpy arrays of the timestamps of the each video frame
     #   directories: similar to videoList but without the "/something.mp4"s
     ##
+    directories = [os.path.dirname(p) for p in videosList]
     preds_all = []
     for i in range(0, len(gazeData)):
         outputFile = os.path.join(directories[i], "ranking_res_removedBlinks_100ms.txt")
         if os.path.exists(outputFile): 
             print(outputFile+" already exists, loading saved file...")
             preds = np.loadtxt(outputFile)
+            preds[preds>0] = 1
             preds_all.append(preds)
         else:
             print("ranking method computing: "+directories[i])
-            preds = analyse_saccades(gazeData[i],videosList[i],frameTimes[i])
+            preds = analyse_saccades(gazeData[i],videosList[i],frameTimes[i], fast)
+            preds[preds>0] = 1
             # np.savetxt(outputFile, preds,fmt='%.4f %.2f %.2f %.0f')
             np.savetxt(outputFile, preds,fmt='%.0f')
             preds_all.append(preds)
+
+    # preds_final = [(arr > 0).astype(int) for arr in preds]
 
     return preds_all

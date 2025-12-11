@@ -31,90 +31,61 @@ from modules.utils import evaluate
 from modules.methods.Hooge.run import runMovingWindow
 from modules.methods.ranking.rankingMethod import runRankingMethod
 from modules.methods.ranking.dataReader import readData as rankingReader
-from config import INP_DIR, LABELER, OEMC_MODEL, DATASET
+from config import INP_DIR, LABELER, DATASET, OEMC_MODEL, DATASET
 
-# START UNDER DEV.
+if DATASET == "DrewsDynamic":
+    LABELER = None
 
+METHOD_TO_RUN = "ranking"
 
-ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)        #ACE-DNV's dataloader
-evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
+# visualize the distribution of the saccades left
+# gazeData , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False, incTimes=True)
+# col0_list = [m[:, 0] for m in gazeData]
+# timesAll = np.array(col0_list, dtype=object)
+# plot_one_segment_durations_across_recordings(timesAll, labels)
 
+if METHOD_TO_RUN == "ixt":
+    data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False)
 
-data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
+    methods = [
+        (ivt, {"v_threshold": 2.0, "min_fixation_duration_ms":15}),
+        (idt, {"d_threshold": 20,  "min_duration_ms":5})
+    ]
+    evaluate(methods, data, labels)
 
-#IVT
-methods = [
-    # (idt, {"threshold": 15}),
-    (ivt, {"v_threshold": 1.2, "min_fixation_duration_ms":0})
-]
-evaluate(methods, data, labels)
+elif METHOD_TO_RUN=="ranking":
+    gazeData, videosList, frameTimes = rankingReader(INP_DIR, DATASET)
+    _ , labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False, incTimes=True)
+    preds = runRankingMethod(gazeData, videosList, frameTimes, fast=False)
+    preds = [(arr > 0).astype(int) for arr in preds]  #threshold x>0 is set to 1
+    evaluate([(runRankingMethod, {})], preds, labels)
 
-### Main body of execution
-# Note: Different methods have different dataloaders or different settings for reading
+elif METHOD_TO_RUN == "mw":
+    data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False, incTimes=True)
+    preds = runMovingWindow(data, 2000, 3)
+    evaluate([(runMovingWindow, {})], preds, labels)
 
-#IDT
-data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=True, degConv=False) # Note: Different methods have different dataloaders
-methods = [
-    (idt, {"d_threshold": 22}),
-    # (ivt, {"v_threshold": 1.2})
-]
-evaluate(methods, data, labels)
-# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
-
-
-#IVT
-methods = [
-    # (idt, {"threshold": 15}),
-    (ivt, {"v_threshold": 1.2})
-]
-evaluate(methods, data, labels)
-# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
-
-# IM2C algorithm execution
-# i2mc_res = i2mc(data[0])
+elif METHOD_TO_RUN == "oemc":
+    recs = listRecNames(INP_DIR)
+    preds, gts = runOEMC(recs, INP_DIR, DATASET, OEMC_MODEL)
+    evaluate([(runOEMC, {})], preds, gts)
 
 
-# gazeNet execution
-# Warning: SCORES ARE ABOUT 1%
-data, labels = dataloader(LABELER, remove_blinks=False, degConv=False)
-df = converDataToGazeNet(data, labels, dummy=False)
-evaluate([(gazeNet, {})], df, labels)
-# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
-
-# RemodNAV method
-# df = df.drop(['evt', 'status'], axis=1)
-# remo_res = remodnav(df)
-# print(remo_res)
+elif METHOD_TO_RUN == "gazeNet":
+    ##### gazeNet
+    # Warning: SCORES ARE ABOUT 1%
+    data, labels = dataloader(DATASET, INP_DIR, LABELER, remove_blinks=False, degConv=False)
+    df = converDataToGazeNet(data, labels, dummy=False)
+    evaluate([(gazeNet, {})], df, labels)
 
 
-# Ranking Method
-gazeData, videosList, frameTimes, directories = rankingReader(INP_DIR, DATASET)
-runRankingMethod(gazeData, videosList, frameTimes, directories)
-# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
+elif METHOD_TO_RUN == "ace-dnv":
+
+    #### ACE-DNV
+    # 1- run video2frames.py to get the video frames
+    # 2- either run DF-VO, or move the outputs of DF-VO from our published dataset to the folders
+    ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)       #ACE-DNV's dataloader
+    evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
 
 
-# ACE-DNV
-ds_x, ds_y = aceReader(INP_DIR, DATASET, LABELER)        #ACE-DNV's dataloader
-evaluate([(ACEDNV, {"modelDir": "modules/methods/ACEDNV/model-zoo/random_forest_wb.pkl"})], ds_x, ds_y)
-# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
-
-
-
-# Moving Window
-data, labels = dataloader(LABELER, remove_blinks=True, degConv=False, incTimes=True)    
-preds = runMovingWindow(data, 6000, 3.5)
-evaluate([(runMovingWindow, {})], preds, labels)
-# print("sample: " + str(np.mean(f1s)) + " event: " + str(np.mean(f1e)) + " ashscore: " + str(np.mean(ashscore)))
-
-
-# OEMC
-
-recs = listRecNames()
-preds, gts = runOEMC(recs, OEMC_MODEL)
-evaluate([(runOEMC, {})], preds, gts)
-
-
-
-print("done")
-
-
+print ("execution finished")
