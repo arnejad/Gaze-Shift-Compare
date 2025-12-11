@@ -6,7 +6,7 @@ The method requires **(1) a gaze signal file** and **(2) an environment video** 
 
 Download all files in this folder (the Ranking Method subdirectory of the repository) and place them next to your own script.
 
-
+Import the Ranking method into your own script by the following lines:
 ```
 from rankingMethod import runRankingMethod
 
