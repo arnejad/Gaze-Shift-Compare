@@ -2,7 +2,7 @@
 
 
 <mark>If you are here to only use our **Ranking method**, you can find the step-by-step instruction here:</mark>
-[text](https://github.com/arnejad/Gaze-Shift-Compare/tree/main/modules/methods/ranking)
+[Ranking Method folder](https://github.com/arnejad/Gaze-Shift-Compare/tree/main/modules/methods/ranking)
 
 
 Welcome to the official repository for our paper:
