@@ -29,7 +29,7 @@ For comparing all the methods including the pre-trained machine-learning-based m
 For citations please use the following [publication]():
 
 ```
-Citation will be provided after publication
+Nejad, A., Ghiani, A., Cornelissen, F.W. et al. Detecting gaze shifts of moving observers in dynamic environments. Behav Res 58, 131 (2026). https://doi.org/10.3758/s13428-026-02972-8
 ```
 
 ## Remark and Acknowledgement
