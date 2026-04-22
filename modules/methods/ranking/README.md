@@ -90,7 +90,7 @@ The identified gaze-shifts/saccades will be predicted as 1 in the `preds` variab
 If you have used Ranking method in your work, we appreciate citing our manuscript:
 
 ```
-citation will be provided
+Nejad, A., Ghiani, A., Cornelissen, F.W. et al. Detecting gaze shifts of moving observers in dynamic environments. Behav Res 58, 131 (2026). https://doi.org/10.3758/s13428-026-02972-8
 ````
 
 ### Questions
