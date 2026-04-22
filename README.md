@@ -26,7 +26,7 @@ Set the address to the data folder in the `config.py`.
 
 For comparing all the methods including the pre-trained machine-learning-based methods, run `main.py`. For optimizing the threshold-based methodsm run `optimizeThreshold.py`. To retrain the machine-learning-based methods, execute `training.py`.
 
-For citations please use the following [publication]():
+For citations please use the following [publication](https://www.researchgate.net/publication/404057816_Detecting_gaze_shifts_of_moving_observers_in_dynamic_environments):
 
 ```
 Nejad, A., Ghiani, A., Cornelissen, F.W. et al. Detecting gaze shifts of moving observers in dynamic environments. Behav Res 58, 131 (2026). https://doi.org/10.3758/s13428-026-02972-8
