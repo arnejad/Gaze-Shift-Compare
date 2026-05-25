@@ -1,6 +1,6 @@
 # Instruction on how to use Ranking Method gaze-shift/saccade detection
 
-This document provides a clean, professional overview of how to use the **Ranking Method** for identifying gaze-shift (saccade) and non-gaze-shift phases in mobile eye-tracking data.  
+This document provides a overview of how to use the **Ranking Method** for identifying gaze-shift (saccade) and non-gaze-shift phases in mobile eye-tracking data.  
 The method requires **(1) a gaze signal file** and **(2) an environment video** as input.
 
 
