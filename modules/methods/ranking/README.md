@@ -35,7 +35,7 @@ DATASET/
 └── ...
 ```
 
-**IMPORTANT**: We highly recommend using a blind detection and appending the labels in the last column. E.g., Pupil eye-trackers have easy-to-use blink detection that you can use. Having the blinks, can significanlty affect the performance of our method. In many mobile eye-trackers blinks are shows and fast jumps in the gaze, which are easy to be mistaken with saccades/gaze-shifts. `gaze.txt` file should have four columns: `[timestamp, gaze_x, gaze_y, blink(0/-1)]`. For blink column, -1 corresponds to blink. Please make sure that the blink column is included in the `gaze.txt` with this structure. Otherwise, if you'd like a fast, lower accuracy result, set all the blink column values to zero.
+**IMPORTANT**: We highly recommend using a blink detection and appending the labels in the last column. E.g., Pupil eye-trackers have easy-to-use blink detection that you can use. Having the blinks, can significanlty affect the performance of our method. In many mobile eye-trackers blinks are shows and fast jumps in the gaze, which are easy to be mistaken with saccades/gaze-shifts. `gaze.txt` file should have four columns: `[timestamp, gaze_x, gaze_y, blink(0/-1)]`. For blink column, -1 corresponds to blink. Please make sure that the blink column is included in the `gaze.txt` with this structure. Otherwise, if you'd like a fast, lower accuracy result, set all the blink column values to zero.
 
 
 Then call the data reader:
